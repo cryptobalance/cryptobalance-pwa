@@ -1,0 +1,9 @@
+bower_components/
+build/
+node_modules/
+*.swp
+.idea/
+*.iml
+npm-debug.log
+yarn.lock
+.npmrc
