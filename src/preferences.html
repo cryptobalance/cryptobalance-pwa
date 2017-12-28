@@ -1,29 +1,75 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/neon-animation/web-animations.html">
+<link rel="import" href="../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="x-preferences">
   <template>
     <style include="shared-styles">
       :host {
-        display: block;
-
-        padding: 10px;
+      }
+      .container {
+        padding: 20px;
       }
     </style>
 
-    <div class="card">
-      <div class="circle">2</div>
-      <h1>View Two</h1>
-      <p>Ea duis bonorum nec, falli paulo aliquid ei eum.</p>
-      <p>Id nam odio natum malorum, tibique copiosae expetenda mel ea.Detracto suavitate repudiandae no eum. Id adhuc minim soluta nam.Id nam odio natum malorum, tibique copiosae expetenda mel ea.</p>
+    <div class="container">
+      <paper-dropdown-menu label="Denomination">
+        <paper-listbox
+          slot="dropdown-content"
+          attr-for-selected="text-content"
+          selected="{{selectedDenomination}}">
+          <template is="dom-repeat" items="{{denominations}}">
+            <paper-item>[[item.name]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
     </div>
+
+    <app-localstorage-document key="SavedDenomination" data="{{savedDenomination}}">
+    </app-localstorage-document>
   </template>
 
   <script>
     class Preferences extends Polymer.Element {
-      static get is() { return 'x-preferences'; }
+      static get is() { return 'x-preferences' }
+
+      static get properties() {
+        return {
+          denominations: {
+            type: Array,
+            value: () => [
+              {name: 'BTC', divideBy: 100000000},
+              {name: 'mBTC', divideBy: 100000},
+              {name: 'bits', divideBy: 100},
+              {name: 'satoshis', divideBy: 1},
+            ],
+          },
+          selectedDenomination: {
+            type: String,
+            value: 'BTC',
+            observer: 'selectedDenominationChanged',
+          },
+          savedDenomination: {
+            type: Object,
+            observer: 'savedDenominationChanged',
+          },
+        }
+      }
+
+      selectedDenominationChanged(newValue) {
+        this.savedDenomination = this.denominations
+          .find(({name}) => name === newValue)
+      }
+
+      savedDenominationChanged(newValue) {
+        this.selectedDenomination = newValue.name
+      }
     }
 
-    window.customElements.define(Preferences.is, Preferences);
+window.customElements.define(Preferences.is, Preferences)
   </script>
 </dom-module>
