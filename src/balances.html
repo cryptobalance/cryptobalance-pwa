@@ -10,6 +10,7 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="preferences.html">
 
 <dom-module id="x-balances">
   <template>
@@ -130,10 +131,12 @@
       }
 
       _getBalance(address, persistedBalanceData, denomination) {
-        const amount = persistedBalanceData && persistedBalanceData[address]
+        const amount = persistedBalanceData
+          && persistedBalanceData[address]
+          && denomination
           ? persistedBalanceData[address].final_balance / denomination.divideBy
           : '-'
-        return amount + ' ' + denomination.name
+        return amount + ' ' + (denomination ? denomination.name : 'BTC')
       }
     }
 
