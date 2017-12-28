@@ -20,7 +20,7 @@
   <template>
     <style>
       :host {
-        --app-primary-color: #4285f4;
+        --app-primary-color: var(--paper-indigo-500);
         --app-secondary-color: black;
 
         display: block;
@@ -85,7 +85,7 @@
         <app-header slot="header" condenses reveals effects="waterfall">
           <app-toolbar>
             <paper-icon-button icon="icons:menu" drawer-toggle></paper-icon-button>
-            <div main-title>Crypto Balance</div>
+            <div main-title>[[_getPageName(page)]]</div>
           </app-toolbar>
         </app-header>
 
@@ -104,7 +104,7 @@
 
   <script>
     class Shell extends Polymer.Element {
-      static get is() { return 'x-shell'; }
+      static get is() { return 'x-shell' }
 
       static get properties() {
         return {
@@ -118,41 +118,52 @@
           // This shouldn't be neccessary, but the Analyzer isn't picking up
           // Polymer.Element#rootPath
           rootPath: String,
-        };
+        }
       }
 
       static get observers() {
         return [
           '_routePageChanged(routeData.page)',
-        ];
+        ]
       }
 
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
         // Default to 'balances' in that case.
-        this.page = page || 'balances';
+        this.page = page || 'balances'
 
         // Close a non-persistent drawer when the page & route are changed.
         if (!this.$.drawer.persistent) {
-          this.$.drawer.close();
+          this.$.drawer.close()
         }
       }
 
       _pageChanged(page) {
         // Load page import on demand. Show 404 page if fails
-        var resolvedPageUrl = this.resolveUrl(page + '.html');
+        var resolvedPageUrl = this.resolveUrl(page + '.html')
         Polymer.importHref(
           resolvedPageUrl,
           null,
           this._showPage404.bind(this),
-          true);
+          true)
       }
 
       _showPage404() {
-        this.page = 'not-found';
+        this.page = 'not-found'
+      }
+
+      _getPageName(page) {
+        switch (page) {
+          case 'balances':
+            return 'Balances'
+          case 'preferences':
+            return 'Preferences'
+          default:
+            return 'Crypto Balance'
+        }
       }
     }
 
-window.customElements.define(Shell.is, Shell);
+window.customElements.define(Shell.is, Shell)
   </script>
 </dom-module>
