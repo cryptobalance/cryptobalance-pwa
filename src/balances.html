@@ -1,39 +1,141 @@
-<!--
-@license
-Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+<link rel="import" href="../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="x-balances">
   <template>
-    <style include="shared-styles">
-      :host {
-        display: block;
-
-        padding: 10px;
+    <style include="shared-styles iron-flex iron-flex-alignment">
+      .container {
+        display: flex;
+        padding: 10px 10px 20px 10px;
+      }
+      paper-button {
+        font-family: 'Roboto', 'Noto', sans-serif;
+        font-weight: normal;
+        font-size: 14px;
+        -webkit-font-smoothing: antialiased;
+      }
+      paper-button.primary {
+        background-color: var(--app-primary-color);
+        color: white;
+        --paper-button-raised-keyboard-focus: {
+          background-color: var(--paper-pink-a200) !important;
+          color: white !important;
+        };
+      }
+      paper-button.primary:hover {
+        background-color: var(--paper-indigo-400);
+      }
+      paper-input {
+        margin-right: 0.29em;
+      }
+      .red {
+        color: var(--paper-red-600);
+      }
+      div.list paper-item {
+        border-bottom: 1px solid var(--paper-grey-600);
+      }
+      div.list paper-item:first-child {
+        border-top: 1px solid var(--paper-grey-600);
       }
     </style>
 
-    <div class="card">
-      <div class="circle">1</div>
-      <h1>View One</h1>
-      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.</p>
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
+    <div class="container layout horizontal">
+      <paper-input class="flex" value="{{addressInput}}" label="Enter a Bitcoin address"></paper-input>
+      <paper-button raised class="primary self-center" on-click="addAddress">add</paper-button>
     </div>
+    <div class="list">
+      <template is="dom-repeat" items="{{storedAddresses}}">
+        <paper-item>
+          <paper-item-body two-line>
+            <div>[[item.address]]</div>
+            <div secondary>[[_getBalance(item.address, persistedBalanceData)]]</div>
+          </paper-item-body>
+          <paper-icon-button icon="delete" class="red" on-click="deleteAddress"></paper-button>
+        </paper-item>
+      </template>
+    </div>
+
+    <iron-ajax
+      id="balanceRequest"
+      url="/api/balance"
+      params="[[_getBalanceRequestParams(storedAddresses.splices)]]"
+      last-response="{{lastBalanceResponse}}">
+    </iron-ajax>
+    <app-indexeddb-mirror
+      key="Balance"
+      data="{{lastBalanceResponse}}"
+      persisted-data="{{persistedBalanceData}}">
+    </app-indexeddb-mirror>
+    <app-localstorage-document key="Addresses" data="{{storedAddresses}}"></app-localstorage-document>
   </template>
 
   <script>
     class Balances extends Polymer.Element {
-      static get is() { return 'x-balances'; }
+      static get is() { return 'x-balances' }
+
+      static get properties() {
+        return {
+          addressInput: {
+            type: String,
+          },
+          storedAddresses: {
+            type: Array,
+            value: () => [],
+            observer: 'updateBalances',
+          },
+        }
+      }
+
+      addAddress() {
+        // TODO Validate address
+        if (this.addressExists(this.addressInput)) {
+          // TODO Show error
+        } else {
+          this.push('storedAddresses', {address: this.addressInput})
+          this.updateBalances()
+        }
+        this.addressInput = ''
+      }
+
+      addressExists(a) {
+        return this.storedAddresses.find(({address}) => address === a)
+      }
+
+      deleteAddress(e) {
+        this.splice('storedAddresses', e.model.get('itemsIndex'), 1)
+      }
+
+      updateBalances() {
+        if (this.storedAddresses.length > 0) {
+          this.$.balanceRequest.generateRequest()
+        }
+      }
+
+      _getBalanceRequestParams(changeRecord) {
+        const active = this.storedAddresses
+          .map(({address}) => address)
+          .join('|')
+        return {active}
+      }
+
+      _getBalance(address, persistedBalanceData) {
+        const amount = persistedBalanceData && persistedBalanceData[address]
+          ? persistedBalanceData[address].final_balance/100000000
+          : '-'
+        return amount + ' BTC'
+      }
     }
 
-    window.customElements.define(Balances.is, Balances);
+window.customElements.define(Balances.is, Balances)
   </script>
 </dom-module>
