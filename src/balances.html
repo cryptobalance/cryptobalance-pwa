@@ -11,6 +11,8 @@
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="preferences.html">
+<script src="../bower_components/moment/min/moment.min.js"></script>
+<script src="../browserify-libs.js"></script>
 
 <dom-module id="x-balances">
   <template>
@@ -48,18 +50,31 @@
       div.list paper-item:first-child {
         border-top: 1px solid var(--paper-grey-600);
       }
+      span.info {
+        font-size: 12px;
+        color: var(--paper-item-body-secondary-color, var(--secondary-text-color));
+        margin-left: 2px;
+      }
     </style>
 
     <div class="container layout horizontal">
-      <paper-input class="flex" value="{{addressInput}}" label="Enter a Bitcoin address"></paper-input>
+      <paper-input
+        class="flex"
+        value="{{addressInput}}"
+        label="Enter a Bitcoin address"
+        auto-validate="false"
+        error-message="{{inputErrorMessage}}"
+        invalid="{{inputInvalid}}">
+      </paper-input>
       <paper-button raised class="primary self-center" on-click="addAddress">add</paper-button>
     </div>
+    <span class="info">Updated [[_getLastBalanceResponseTime(lastBalanceResponse)]]</span>
     <div class="list">
       <template is="dom-repeat" items="{{storedAddresses}}">
         <paper-item>
           <paper-item-body two-line>
             <div>[[item.address]]</div>
-            <div secondary>[[_getBalance(item.address, persistedBalanceData, denomination)]]</div>
+            <div secondary>[[_getBalance(item.address, lastBalanceResponse, denomination)]]</div>
           </paper-item-body>
           <paper-icon-button icon="delete" class="red" on-click="deleteAddress"></paper-button>
         </paper-item>
@@ -69,15 +84,10 @@
     <iron-ajax
       id="balanceRequest"
       url="/api/balance"
-      params="[[_getBalanceRequestParams(storedAddresses.splices)]]"
-      last-response="{{lastBalanceResponse}}">
+      params="[[_getBalanceRequestParams(storedAddresses.splices)]]">
     </iron-ajax>
-    <app-indexeddb-mirror
-      key="Balance"
-      data="{{lastBalanceResponse}}"
-      persisted-data="{{persistedBalanceData}}">
-    </app-indexeddb-mirror>
-    <app-localstorage-document key="Addresses" data="{{storedAddresses}}"></app-localstorage-document>
+    <app-localstorage-document key="LastBalanceResponse" data="{{lastBalanceResponse}}">
+    <app-localstorage-document key="Addresses" data="{{storedAddresses}}">
     <app-localstorage-document key="SavedDenomination" data="{{denomination}}">
   </template>
 
@@ -95,18 +105,32 @@
             value: () => [],
             observer: 'updateBalances',
           },
+          lastBalanceResponse: {
+            type: Object,
+            value: () => ({}),
+          },
+          inputInvalid: {
+            type: Boolean,
+            value: false,
+          },
+          inputErrorMessage: {
+            type: String,
+          },
         }
       }
 
       addAddress() {
-        // TODO Validate address
         if (this.addressExists(this.addressInput)) {
-          // TODO Show error
+          this.inputErrorMessage = 'The address is already saved'
+          this.inputInvalid = true
+        } else if (!bitcoin.isValidBitcoinAddress(this.addressInput)) {
+          this.inputErrorMessage = 'Not a valid address'
+          this.inputInvalid = true
         } else {
           this.push('storedAddresses', {address: this.addressInput})
-          this.updateBalances()
+          this.updateBalances({force: true})
+          this.addressInput = ''
         }
-        this.addressInput = ''
       }
 
       addressExists(a) {
@@ -117,9 +141,32 @@
         this.splice('storedAddresses', e.model.get('itemsIndex'), 1)
       }
 
-      updateBalances() {
-        if (this.storedAddresses.length > 0) {
-          this.$.balanceRequest.generateRequest()
+      updateBalances({force = false}) {
+        if (this.storedAddresses.length === 0) {
+          return
+        }
+
+        const withinTimeLimit = () => this.lastBalanceResponse.time
+          ? moment(this.lastBalanceResponse.time).add(1, 'minute').isAfter(moment(), 'minute')
+          : false
+
+        if (force || !withinTimeLimit()) {
+          const request = this.$.balanceRequest.generateRequest()
+          request.completes.then((e) => {
+            this.lastBalanceResponse = {
+              time: new Date(),
+              data: e.parseResponse(),
+            }
+          })
+        }
+      }
+
+      _getLastBalanceResponseTime(lastBalanceResponse) {
+        const updatedAt = moment(lastBalanceResponse.time)
+        if (updatedAt.isSame(moment(), 'day')) {
+          return updatedAt.format('HH:mm')
+        } else {
+          return updatedAt.format('YYYY-MM-DD HH:mm')
         }
       }
 
@@ -130,11 +177,11 @@
         return {active}
       }
 
-      _getBalance(address, persistedBalanceData, denomination) {
-        const amount = persistedBalanceData
-          && persistedBalanceData[address]
+      _getBalance(address, lastBalanceResponse, denomination) {
+        const amount = lastBalanceResponse.data
+          && lastBalanceResponse.data[address]
           && denomination
-          ? persistedBalanceData[address].final_balance / denomination.divideBy
+          ? lastBalanceResponse.data[address].final_balance / denomination.divideBy
           : '-'
         return amount + ' ' + (denomination ? denomination.name : 'BTC')
       }

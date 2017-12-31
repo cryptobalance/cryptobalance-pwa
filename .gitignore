@@ -10,3 +10,4 @@ yarn.lock
 .firebaserc
 firebase.json
 functions/
+browserify-libs.js
