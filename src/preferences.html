@@ -17,19 +17,19 @@
     </style>
 
     <div class="container">
-      <paper-dropdown-menu label="Denomination">
+      <paper-dropdown-menu label="Format">
         <paper-listbox
           slot="dropdown-content"
           attr-for-selected="text-content"
-          selected="{{selectedDenomination}}">
-          <template is="dom-repeat" items="{{denominations}}">
+          selected="{{selectedBtcFormat}}">
+          <template is="dom-repeat" items="{{btcFormats}}">
             <paper-item>[[item.name]]</paper-item>
           </template>
         </paper-listbox>
       </paper-dropdown-menu>
     </div>
 
-    <app-localstorage-document key="SavedDenomination" data="{{savedDenomination}}">
+    <app-localstorage-document key="SavedBtcFormat" data="{{savedBtcFormat}}">
   </template>
 
   <script>
@@ -38,7 +38,7 @@
 
       static get properties() {
         return {
-          denominations: {
+          btcFormats: {
             type: Array,
             value: () => [
               {name: 'BTC', divideBy: 100000000},
@@ -47,25 +47,25 @@
               {name: 'satoshis', divideBy: 1},
             ],
           },
-          selectedDenomination: {
+          selectedBtcFormat: {
             type: String,
             value: 'BTC',
-            observer: 'selectedDenominationChanged',
+            observer: 'selectedBtcFormatChanged',
           },
-          savedDenomination: {
+          savedBtcFormat: {
             type: Object,
-            observer: 'savedDenominationChanged',
+            observer: 'savedBtcFormatChanged',
           },
         }
       }
 
-      selectedDenominationChanged(newValue) {
-        this.savedDenomination = this.denominations
+      selectedBtcFormatChanged(newValue) {
+        this.savedBtcFormat = this.btcFormats
           .find(({name}) => name === newValue)
       }
 
-      savedDenominationChanged(newValue) {
-        this.selectedDenomination = newValue.name
+      savedBtcFormatChanged(newValue) {
+        this.selectedBtcFormats = newValue.name
       }
     }
 

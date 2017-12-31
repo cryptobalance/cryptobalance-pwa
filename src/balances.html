@@ -68,13 +68,15 @@
       </paper-input>
       <paper-button raised class="primary self-center" on-click="addAddress">add</paper-button>
     </div>
-    <span class="info">Updated [[_getLastBalanceResponseTime(lastBalanceResponse)]]</span>
+    <template is="dom-if" if="{{storedAddresses.length}}">
+      <span class="info">Updated [[_getLastBalanceResponseTime(lastBalanceResponse)]]</span>
+    </template>
     <div class="list">
       <template is="dom-repeat" items="{{storedAddresses}}">
         <paper-item>
           <paper-item-body two-line>
             <div>[[item.address]]</div>
-            <div secondary>[[_getBalance(item.address, lastBalanceResponse, denomination)]]</div>
+            <div secondary>[[_getBalance(item.address, lastBalanceResponse, btcFormat)]]</div>
           </paper-item-body>
           <paper-icon-button icon="delete" class="red" on-click="deleteAddress"></paper-button>
         </paper-item>
@@ -88,7 +90,7 @@
     </iron-ajax>
     <app-localstorage-document key="LastBalanceResponse" data="{{lastBalanceResponse}}">
     <app-localstorage-document key="Addresses" data="{{storedAddresses}}">
-    <app-localstorage-document key="SavedDenomination" data="{{denomination}}">
+    <app-localstorage-document key="SavedBtcFormat" data="{{btcFormat}}">
   </template>
 
   <script>
@@ -162,6 +164,9 @@
       }
 
       _getLastBalanceResponseTime(lastBalanceResponse) {
+        if (!lastBalanceResponse.time) {
+          return '-'
+        }
         const updatedAt = moment(lastBalanceResponse.time)
         if (updatedAt.isSame(moment(), 'day')) {
           return updatedAt.format('HH:mm')
@@ -177,13 +182,13 @@
         return {active}
       }
 
-      _getBalance(address, lastBalanceResponse, denomination) {
+      _getBalance(address, lastBalanceResponse, btcFormat) {
         const amount = lastBalanceResponse.data
           && lastBalanceResponse.data[address]
-          && denomination
-          ? lastBalanceResponse.data[address].final_balance / denomination.divideBy
+          && btcFormat
+          ? lastBalanceResponse.data[address].final_balance / btcFormat.divideBy
           : '-'
-        return amount + ' ' + (denomination ? denomination.name : 'BTC')
+        return amount + ' ' + (btcFormat ? btcFormat.name : 'BTC')
       }
     }
 

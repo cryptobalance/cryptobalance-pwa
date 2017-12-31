@@ -22,13 +22,16 @@
       :host {
         --app-primary-color: var(--paper-indigo-500);
         --app-secondary-color: var(--paper-indigo-100);
-        --app-drawer-width: 200px;
 
         display: block;
       }
 
       app-drawer-layout:not([narrow]) [drawer-toggle] {
         display: none;
+      }
+
+      app-drawer {
+        border-right: 1px solid var(--paper-grey-600);
       }
 
       app-header {
