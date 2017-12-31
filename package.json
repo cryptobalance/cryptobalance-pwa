@@ -1,7 +1,9 @@
 {
-  "name": "polymer-starter-kit",
-  "license": "BSD-3-Clause",
+  "name": "crypto-balance",
+  "license": "MIT",
   "devDependencies": {
+    "bitcoinjs-lib": "^3.3.2",
+    "browserify": "^14.5.0",
     "eslint": "^3.19.0",
     "eslint-config-google": "^0.7.0",
     "eslint-plugin-html": "^2.0.0"
