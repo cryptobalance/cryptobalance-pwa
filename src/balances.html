@@ -88,8 +88,8 @@
       url="/api/balance"
       params="[[_getBalanceRequestParams(storedAddresses.splices)]]">
     </iron-ajax>
-    <app-localstorage-document key="LastBalanceResponse" data="{{lastBalanceResponse}}">
-    <app-localstorage-document key="Addresses" data="{{storedAddresses}}">
+    <app-localstorage-document id="lastBalanceResponse" key="LastBalanceResponse" data="{{lastBalanceResponse}}">
+    <app-localstorage-document id="addresses" key="Addresses" data="{{storedAddresses}}">
     <app-localstorage-document key="SavedBtcFormat" data="{{btcFormat}}">
   </template>
 
@@ -105,7 +105,6 @@
           storedAddresses: {
             type: Array,
             value: () => [],
-            observer: 'updateBalances',
           },
           lastBalanceResponse: {
             type: Object,
@@ -119,6 +118,15 @@
             type: String,
           },
         }
+      }
+
+      ready() {
+        super.ready()
+        this.$.lastBalanceResponse.transactionsComplete.then(() => {
+          this.$.addresses.transactionsComplete.then(() => {
+            this.updateBalances({force: false})
+          })
+        })
       }
 
       addAddress() {
@@ -150,7 +158,7 @@
 
         const withinTimeLimit = () => this.lastBalanceResponse.time
           ? moment(this.lastBalanceResponse.time).add(1, 'minute').isAfter(moment(), 'minute')
-          : false
+          : true
 
         if (force || !withinTimeLimit()) {
           const request = this.$.balanceRequest.generateRequest()
