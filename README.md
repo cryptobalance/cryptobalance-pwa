@@ -1,5 +1,9 @@
 # Crypto Balance
 
+A Progressive Web App (PWA) built using Polymer.
+
+Hosted at https://lirre8.github.io/crypto-balance.
+
 ## Setup the local dev environment
 
 ### Prerequisites
@@ -13,12 +17,24 @@ Second, install [Bower](https://bower.io/) using [npm](https://www.npmjs.com)
 
     npm install -g bower
 
+### Install dependencies
+
+Run the following commands in the repository root directory:
+
+    npm install
+
+    npm run browserify
+
 ### Start the development server
 
 This command serves the app at `http://localhost:8081` and provides basic URL
 routing for the app:
 
-    npm start
+    polymer serve
+
+## Build for production
+
+    polymer build
 
 ### Run tests
 
