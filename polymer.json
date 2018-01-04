@@ -19,13 +19,16 @@
   },
   "builds": [
     {
-      "preset": "es5-bundled"
+      "preset": "es5-bundled",
+      "basePath": "/crypto-balance/"
     },
     {
-      "preset": "es6-bundled"
+      "preset": "es6-bundled",
+      "basePath": "/crypto-balance/"
     },
     {
-      "preset": "es6-unbundled"
+      "preset": "es6-unbundled",
+      "basePath": "/crypto-balance/"
     }
   ]
 }
