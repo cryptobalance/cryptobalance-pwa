@@ -8,7 +8,15 @@
     "eslint-config-google": "^0.7.0",
     "eslint-plugin-html": "^2.0.0"
   },
+  "config": {
+    "deploy": {
+      "repo": "git@github.com:lirre8/crypto-balance.git",
+      "branch": "gh-pages",
+      "dir": "build/es5-bundled"
+    }
+  },
   "scripts": {
+    "deploy": "GIT_DEPLOY_REPO=$npm_package_config_deploy_repo GIT_DEPLOY_BRANCH=$npm_package_config_deploy_branch GIT_DEPLOY_DIR=$npm_package_config_deploy_dir ./deploy.sh",
     "start": "polymer serve --hostname 0.0.0.0",
     "lint": "npm run lint:javascript && polymer lint",
     "lint:javascript": "eslint . --ext js,html --ignore-path .gitignore",
