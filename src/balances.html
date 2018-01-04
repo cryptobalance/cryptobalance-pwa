@@ -69,28 +69,25 @@
       <paper-button raised class="primary self-center" on-click="addAddress">add</paper-button>
     </div>
     <template is="dom-if" if="{{storedAddresses.length}}">
-      <span class="info">Updated [[_getLastBalanceResponseTime(lastBalanceResponse)]]</span>
+      <span class="info">Last update: [[_formatUpdatedTime(lastAddressResponse)]]</span>
     </template>
     <div class="list">
       <template is="dom-repeat" items="{{storedAddresses}}">
         <paper-item>
           <paper-item-body two-line>
             <div>[[item.address]]</div>
-            <div secondary>[[_getBalance(item.address, lastBalanceResponse, btcFormat)]]</div>
+            <div secondary>[[_formatBalance(item.address, addressInfo, btcFormat)]]</div>
           </paper-item-body>
           <paper-icon-button icon="delete" class="red" on-click="deleteAddress"></paper-button>
         </paper-item>
       </template>
     </div>
 
-    <iron-ajax
-      id="balanceRequest"
-      url="/api/balance"
-      params="[[_getBalanceRequestParams(storedAddresses.splices)]]">
-    </iron-ajax>
-    <app-localstorage-document id="lastBalanceResponse" key="LastBalanceResponse" data="{{lastBalanceResponse}}">
-    <app-localstorage-document id="addresses" key="Addresses" data="{{storedAddresses}}">
-    <app-localstorage-document key="SavedBtcFormat" data="{{btcFormat}}">
+    <iron-ajax id="balanceRequest" url="{{addressUrl}}"></iron-ajax>
+    <app-localstorage-document id="lastAddressResponse" key="lastAddressResponse" data="{{lastAddressResponse}}">
+    <app-localstorage-document id="addressInfo" key="addressInfo" data="{{addressInfo}}">
+    <app-localstorage-document id="storedAddresses" key="storedAddresses" data="{{storedAddresses}}">
+    <app-localstorage-document key="btcFormat" data="{{btcFormat}}">
   </template>
 
   <script>
@@ -99,34 +96,47 @@
 
       static get properties() {
         return {
-          addressInput: {
-            type: String,
-          },
-          storedAddresses: {
-            type: Array,
-            value: () => [],
-          },
-          lastBalanceResponse: {
+          addressInfo: {
             type: Object,
             value: () => ({}),
           },
+          addressInput: String,
+          addressUrl: String,
           inputInvalid: {
             type: Boolean,
             value: false,
           },
-          inputErrorMessage: {
-            type: String,
+          inputErrorMessage: String,
+          lastAddressResponse: {
+            type: Date,
+            value: null,
+          },
+          storedAddresses: {
+            type: Array,
+            value: () => [],
           },
         }
       }
 
       ready() {
         super.ready()
-        this.$.lastBalanceResponse.transactionsComplete.then(() => {
-          this.$.addresses.transactionsComplete.then(() => {
-            this.updateBalances({force: false})
+
+        const storagePromises = [
+          this.$.addressInfo.transactionsComplete,
+          this.$.storedAddresses.transactionsComplete,
+          this.$.lastAddressResponse.transactionsComplete,
+        ]
+
+        Promise.all(storagePromises)
+          .then(() => {
+            const withinTimeLimit = this.lastAddressResponse
+              ? moment(this.lastAddressResponse).add(1, 'minute').isAfter(moment(), 'minute')
+              : false
+
+            if (!withinTimeLimit) {
+              this.updateAllAddresses()
+            }
           })
-        })
       }
 
       addAddress() {
@@ -138,7 +148,7 @@
           this.inputInvalid = true
         } else {
           this.push('storedAddresses', {address: this.addressInput})
-          this.updateBalances({force: true})
+          this.updateAllAddresses()
           this.addressInput = ''
         }
       }
@@ -151,31 +161,30 @@
         this.splice('storedAddresses', e.model.get('itemsIndex'), 1)
       }
 
-      updateBalances({force = false}) {
+      updateAllAddresses() {
         if (this.storedAddresses.length === 0) {
           return
         }
 
-        const withinTimeLimit = () => this.lastBalanceResponse.time
-          ? moment(this.lastBalanceResponse.time).add(1, 'minute').isAfter(moment(), 'minute')
-          : true
+        const addressParam = this.storedAddresses.map(({address}) => address).join(';')
+        this.addressUrl = `https://api.blockcypher.com/v1/btc/main/addrs/${addressParam}/balance`
 
-        if (force || !withinTimeLimit()) {
-          const request = this.$.balanceRequest.generateRequest()
-          request.completes.then((e) => {
-            this.lastBalanceResponse = {
-              time: new Date(),
-              data: e.parseResponse(),
-            }
-          })
-        }
+        const request = this.$.balanceRequest.generateRequest()
+        request.completes.then((e) => {
+          this.lastAddressResponse = new Date()
+          this.addressInfo = [].concat(e.parseResponse())
+            .reduce((acc, address) => {
+              acc[address.address] = address
+              return acc
+            }, {})
+        })
       }
 
-      _getLastBalanceResponseTime(lastBalanceResponse) {
-        if (!lastBalanceResponse.time) {
+      _formatUpdatedTime(time) {
+        if (!time) {
           return '-'
         }
-        const updatedAt = moment(lastBalanceResponse.time)
+        const updatedAt = moment(time)
         if (updatedAt.isSame(moment(), 'day')) {
           return updatedAt.format('HH:mm')
         } else {
@@ -183,18 +192,9 @@
         }
       }
 
-      _getBalanceRequestParams(changeRecord) {
-        const active = this.storedAddresses
-          .map(({address}) => address)
-          .join('|')
-        return {active}
-      }
-
-      _getBalance(address, lastBalanceResponse, btcFormat) {
-        const amount = lastBalanceResponse.data
-          && lastBalanceResponse.data[address]
-          && btcFormat
-          ? lastBalanceResponse.data[address].final_balance / btcFormat.divideBy
+      _formatBalance(address, addressInfo, btcFormat) {
+        const amount = addressInfo && addressInfo[address] && btcFormat
+          ? addressInfo[address].balance / btcFormat.divideBy
           : '-'
         return amount + ' ' + (btcFormat ? btcFormat.name : 'BTC')
       }

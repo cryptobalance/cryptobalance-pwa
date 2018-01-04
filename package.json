@@ -9,7 +9,7 @@
     "eslint-plugin-html": "^2.0.0"
   },
   "scripts": {
-    "start": "polymer serve --hostname 0.0.0.0 --proxy-path api --proxy-target https://blockchain.info",
+    "start": "polymer serve --hostname 0.0.0.0",
     "lint": "npm run lint:javascript && polymer lint",
     "lint:javascript": "eslint . --ext js,html --ignore-path .gitignore",
     "test": "polymer test",
