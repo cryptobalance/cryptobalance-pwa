@@ -32,7 +32,7 @@ routing for the app:
 
     polymer serve
 
-## Build for production
+### Build for production
 
     polymer build
 

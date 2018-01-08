@@ -41,10 +41,10 @@
           btcFormats: {
             type: Array,
             value: () => [
-              {name: 'BTC', divideBy: 100000000},
-              {name: 'mBTC', divideBy: 100000},
-              {name: 'bits', divideBy: 100},
-              {name: 'satoshis', divideBy: 1},
+              {name: 'BTC', divideBy: 100000000, decimalCount: 8},
+              {name: 'mBTC', divideBy: 100000, decimalCount: 6},
+              {name: 'bits', divideBy: 100, decimalCount: 2},
+              {name: 'satoshis', divideBy: 1, decimalCount: 0},
             ],
           },
           selectedBtcFormat: {

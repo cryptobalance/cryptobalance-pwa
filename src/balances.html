@@ -17,66 +17,59 @@
 <dom-module id="x-balances">
   <template>
     <style include="shared-styles iron-flex iron-flex-alignment">
+      paper-icon-button {
+        --paper-icon-button-ink-color: var(--app-primary-color);
+      }
+      div.list paper-item {
+        border-bottom: 1px solid var(--paper-grey-400);
+      }
+      div.list paper-item:first-child {
+        border-top: 1px solid var(--paper-grey-400);
+      }
       .container {
+        padding: 5px 5px 5px 5px;
         display: flex;
-        padding: 10px 10px 20px 10px;
-      }
-      paper-button {
-        font-family: 'Roboto', 'Noto', sans-serif;
-        font-weight: normal;
-        font-size: 14px;
-        -webkit-font-smoothing: antialiased;
-      }
-      paper-button.primary {
-        background-color: var(--app-primary-color);
-        color: white;
-        --paper-button-raised-keyboard-focus: {
-          background-color: var(--paper-pink-a200) !important;
-          color: white !important;
-        };
-      }
-      paper-button.primary:hover {
-        background-color: var(--paper-indigo-400);
-      }
-      paper-input {
-        margin-right: 0.29em;
+        background-color: var(--app-secondary-color);
+        text-align: center;
       }
       .red {
         color: var(--paper-red-600);
       }
-      div.list paper-item {
-        border-bottom: 1px solid var(--paper-grey-600);
+      .big-icon {
+        height: 48px;
+        width: 48px;
       }
-      div.list paper-item:first-child {
-        border-top: 1px solid var(--paper-grey-600);
-      }
-      span.info {
+      .small-text {
         font-size: 12px;
-        color: var(--paper-item-body-secondary-color, var(--secondary-text-color));
-        margin-left: 2px;
+      }
+      .bold {
+        font-weight: bold;
+      }
+      .primary-text {
+        color: var(--app-primary-color);
       }
     </style>
 
-    <div class="container layout horizontal">
-      <paper-input
-        class="flex"
-        value="{{addressInput}}"
-        label="Enter a Bitcoin address"
-        auto-validate="false"
-        error-message="{{inputErrorMessage}}"
-        invalid="{{inputInvalid}}">
-      </paper-input>
-      <paper-button raised class="primary self-center" on-click="addAddress">add</paper-button>
+    <div class="container primary-text layout horizontal around-justified center">
+      <paper-icon-button icon="add" class="big-icon"></paper-icon-button>
+      <div>
+        <span class="bold">[[_formatBalance(storedAddresses, addressInfo, btcFormat)]]</span>
+        <br>
+        <span class="small-text">Total fiat</span>
+      </div>
+      <div class="small-text">
+        <span>Last update</span>
+        <br>
+        <span>[[_formatUpdatedTime(lastAddressResponse)]]</span>
+      </div>
     </div>
-    <template is="dom-if" if="{{storedAddresses.length}}">
-      <span class="info">Last update: [[_formatUpdatedTime(lastAddressResponse)]]</span>
-    </template>
+
     <div class="list">
       <template is="dom-repeat" items="{{storedAddresses}}">
         <paper-item>
           <paper-item-body two-line>
             <div>[[item.address]]</div>
-            <div secondary>[[_formatBalance(item.address, addressInfo, btcFormat)]]</div>
+            <div secondary class="primary-text">[[_formatBalance(item, addressInfo, btcFormat)]]</div>
           </paper-item-body>
           <paper-icon-button icon="delete" class="red" on-click="deleteAddress"></paper-button>
         </paper-item>
@@ -192,12 +185,21 @@
         }
       }
 
-      _formatBalance(address, addressInfo, btcFormat) {
-        const amount = addressInfo && addressInfo[address] && btcFormat
-          ? addressInfo[address].balance / btcFormat.divideBy
-          : '-'
-        return amount + ' ' + (btcFormat ? btcFormat.name : 'BTC')
+      _formatBalance(addresses, addressInfo, btcFormat) {
+        if (!(addresses && addressInfo && btcFormat)) {
+          return '- BTC'
+        }
+        const totalAmount = [].concat(addresses)
+          .map(({address}) => address)
+          .reduce((amount, address) => {
+            amount += addressInfo[address].balance
+            return amount
+          }, 0)
+        const fixedAmount = (totalAmount / btcFormat.divideBy).toFixed(btcFormat.decimalCount)
+        return fixedAmount + ' ' + btcFormat.name
       }
+
+
     }
 
 window.customElements.define(Balances.is, Balances)
