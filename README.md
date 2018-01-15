@@ -25,6 +25,8 @@ Run the following commands in the repository root directory:
 
     npm run browserify
 
+    bower install
+
 ### Start the development server
 
 This command serves the app at `http://localhost:8081` and provides basic URL
