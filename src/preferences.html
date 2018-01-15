@@ -21,7 +21,7 @@
         <paper-listbox
           slot="dropdown-content"
           attr-for-selected="text-content"
-          selected="{{selectedBtcFormat}}">
+          selected="{{savedBtcFormat}}">
           <template is="dom-repeat" items="{{btcFormats}}">
             <paper-item>[[item.name]]</paper-item>
           </template>
@@ -40,6 +40,8 @@
         return {
           btcFormats: {
             type: Array,
+            readOnly: true,
+            notify: true,
             value: () => [
               {name: 'BTC', divideBy: 100000000, decimalCount: 8},
               {name: 'mBTC', divideBy: 100000, decimalCount: 6},
@@ -47,25 +49,11 @@
               {name: 'satoshis', divideBy: 1, decimalCount: 0},
             ],
           },
-          selectedBtcFormat: {
+          savedBtcFormat: {
             type: String,
             value: 'BTC',
-            observer: 'selectedBtcFormatChanged',
-          },
-          savedBtcFormat: {
-            type: Object,
-            observer: 'savedBtcFormatChanged',
           },
         }
-      }
-
-      selectedBtcFormatChanged(newValue) {
-        this.savedBtcFormat = this.btcFormats
-          .find(({name}) => name === newValue)
-      }
-
-      savedBtcFormatChanged(newValue) {
-        this.selectedBtcFormats = newValue.name
       }
     }
 

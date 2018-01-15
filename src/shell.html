@@ -13,8 +13,8 @@
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 
+<link rel="import" href="preferences.html">
 <link rel="lazy-import" href="balances.html">
-<link rel="lazy-import" href="preferences.html">
 <link rel="lazy-import" href="not-found.html">
 
 <dom-module id="x-shell">
@@ -132,8 +132,8 @@
           attr-for-selected="name"
           fallback-selection="not-found"
           role="main">
-          <x-balances name="balances"></x-balances>
-          <x-preferences name="preferences"></x-preferences>
+          <x-balances name="balances" btc-formats="[[btcFormats]]"></x-balances>
+          <x-preferences name="preferences" btc-formats="{{btcFormats}}"></x-preferences>
           <not-found name="not-found"></not-found>
         </iron-pages>
       </app-header-layout>
