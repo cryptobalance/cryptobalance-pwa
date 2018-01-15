@@ -9,8 +9,8 @@
 <link rel="import" href="../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="shared-styles.html">
-<link rel="import" href="preferences.html">
 <script src="../bower_components/moment/min/moment.min.js"></script>
 <script src="../browserify-libs.js"></script>
 
@@ -26,11 +26,25 @@
       div.list paper-item:first-child {
         border-top: 1px solid var(--paper-grey-400);
       }
+      paper-button {
+        -webkit-font-smoothing: antialiased;
+        background-color: var(--app-primary-color);
+        color: white;
+        --paper-button-raised-keyboard-focus: {
+          background-color: var(--paper-pink-a200) !important;
+          color: white !important;
+        }
+      }
+      paper-button:hover {
+        background-color: var(--paper-indigo-400);
+      }
       .container {
         padding: 5px 5px 5px 5px;
         display: flex;
-        background-color: var(--app-secondary-color);
         text-align: center;
+      }
+      .secondary {
+        background-color: var(--app-secondary-color);
       }
       .red {
         color: var(--paper-red-600);
@@ -50,8 +64,8 @@
       }
     </style>
 
-    <div class="container primary-text layout horizontal around-justified center">
-      <paper-icon-button icon="add" class="big-icon"></paper-icon-button>
+    <div class="container secondary primary-text layout horizontal around-justified center">
+      <paper-icon-button icon="[[_getAddIcon(addSpaceOpened)]]" class="big-icon" on-click="toggleAddSpace"></paper-icon-button>
       <div>
         <span class="bold">[[_formatBalance(storedAddresses, addressInfo, btcFormat)]]</span>
         <br>
@@ -63,6 +77,19 @@
         <span>[[_formatUpdatedTime(lastAddressResponse)]]</span>
       </div>
     </div>
+    <iron-collapse opened="[[addSpaceOpened]]">
+      <div class="container primary-text layout horizontal">
+        <paper-input
+          class="flex"
+          value="{{addressInput}}"
+          label="Enter a Bitcoin address"
+          auto-validate="false"
+          error-message="{{inputErrorMessage}}"
+          invalid="{{inputInvalid}}">
+        </paper-input>
+        <paper-button raised class="primary self-center" on-click="addAddress">add</paper-button>
+      </div>
+    </iron-collapse>
 
     <div class="list">
       <template is="dom-repeat" items="{{storedAddresses}}">
@@ -95,6 +122,10 @@
           },
           addressInput: String,
           addressUrl: String,
+          addSpaceOpened: {
+            type: Boolean,
+            value: false,
+          },
           inputInvalid: {
             type: Boolean,
             value: false,
@@ -130,6 +161,14 @@
               this.updateAllAddresses()
             }
           })
+      }
+
+      toggleAddSpace() {
+        this.addSpaceOpened = !this.addSpaceOpened
+      }
+
+      _getAddIcon(addSpaceOpened) {
+        return addSpaceOpened ? 'close' : 'add'
       }
 
       addAddress() {
@@ -192,11 +231,12 @@
         const totalAmount = [].concat(addresses)
           .map(({address}) => address)
           .reduce((amount, address) => {
-            amount += addressInfo[address].balance
+            amount += addressInfo[address] ? addressInfo[address].balance : 0
             return amount
           }, 0)
-        const fixedAmount = (totalAmount / btcFormat.divideBy).toFixed(btcFormat.decimalCount)
-        return fixedAmount + ' ' + btcFormat.name
+        const {divideBy, decimalCount} = this.btcFormats.find(({name}) => name === btcFormat)
+        const fixedAmount = (totalAmount / divideBy).toFixed(decimalCount)
+        return fixedAmount + ' ' + btcFormat
       }
 
 
