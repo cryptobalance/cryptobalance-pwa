@@ -18,6 +18,9 @@
     "semi": ["error", "never"]
   },
   "globals": {
-    "Polymer": true
+    "Polymer": true,
+    "Promise": true,
+    "moment": true,
+    "bitcoin": true
   }
 }

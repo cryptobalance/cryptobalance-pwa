@@ -38,6 +38,16 @@
       paper-button:hover {
         background-color: var(--paper-indigo-400);
       }
+      footer {
+        position: fixed;
+        bottom: 0;
+        text-align: center;
+        font-weight: bold;
+        color: var(--app-primary-color);
+        background-color: var(--app-secondary-color);
+        width: 100%;
+        padding: 5px 0;
+      }
       .container {
         padding: 5px 5px 5px 5px;
         display: flex;
@@ -67,14 +77,14 @@
     <div class="container secondary primary-text layout horizontal around-justified center">
       <paper-icon-button icon="[[_getAddIcon(addSpaceOpened)]]" class="big-icon" on-click="toggleAddSpace"></paper-icon-button>
       <div>
-        <span class="bold">[[_formatBalance(storedAddresses, addressInfo, btcFormat)]]</span>
+        <span class="bold">[[_formatBalance(btcFormat, storedAddresses, addressData)]]</span>
         <br>
-        <span class="small-text">Total fiat</span>
+        <span class="small-text bold">[[_formatPrice(priceData, storedAddresses, addressData)]]</span>
       </div>
       <div class="small-text">
         <span>Last update</span>
         <br>
-        <span>[[_formatUpdatedTime(lastAddressResponse)]]</span>
+        <span>[[_formatUpdatedTime(updatedAt)]]</span>
       </div>
     </div>
     <iron-collapse opened="[[addSpaceOpened]]">
@@ -95,17 +105,24 @@
       <template is="dom-repeat" items="{{storedAddresses}}">
         <paper-item>
           <paper-item-body two-line>
-            <div>[[item.address]]</div>
-            <div secondary class="primary-text">[[_formatBalance(item, addressInfo, btcFormat)]]</div>
+            <div>[[item]]</div>
+            <div secondary class="primary-text">
+              <span class="bold">[[_formatBalance(btcFormat, item, addressData)]]</span>
+              <span>([[_formatPrice(priceData, item, addressData)]])</span>
+            </div>
           </paper-item-body>
           <paper-icon-button icon="delete" class="red" on-click="deleteAddress"></paper-button>
         </paper-item>
       </template>
     </div>
 
-    <iron-ajax id="balanceRequest" url="{{addressUrl}}"></iron-ajax>
-    <app-localstorage-document id="lastAddressResponse" key="lastAddressResponse" data="{{lastAddressResponse}}">
-    <app-localstorage-document id="addressInfo" key="addressInfo" data="{{addressInfo}}">
+    <footer>1 BTC = [[priceData.USD]] USD</footer>
+
+    <iron-ajax id="addressRequest" url="{{addressUrl}}"></iron-ajax>
+    <iron-ajax id="priceRequest" url="https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD"></iron-ajax>
+    <app-localstorage-document id="updatedAt" key="updatedAt" data="{{updatedAt}}">
+    <app-localstorage-document id="addressData" key="addressData" data="{{addressData}}">
+    <app-localstorage-document id="priceData" key="priceData" data="{{priceData}}">
     <app-localstorage-document id="storedAddresses" key="storedAddresses" data="{{storedAddresses}}">
     <app-localstorage-document key="btcFormat" data="{{btcFormat}}">
   </template>
@@ -116,10 +133,7 @@
 
       static get properties() {
         return {
-          addressInfo: {
-            type: Object,
-            value: () => ({}),
-          },
+          addressData: Object,
           addressInput: String,
           addressUrl: String,
           addSpaceOpened: {
@@ -131,14 +145,12 @@
             value: false,
           },
           inputErrorMessage: String,
-          lastAddressResponse: {
-            type: Date,
-            value: null,
-          },
+          priceData: Object,
           storedAddresses: {
             type: Array,
             value: () => [],
           },
+          updatedAt: Date,
         }
       }
 
@@ -146,19 +158,19 @@
         super.ready()
 
         const storagePromises = [
-          this.$.addressInfo.transactionsComplete,
+          this.$.addressData.transactionsComplete,
           this.$.storedAddresses.transactionsComplete,
-          this.$.lastAddressResponse.transactionsComplete,
+          this.$.updatedAt.transactionsComplete,
         ]
 
         Promise.all(storagePromises)
           .then(() => {
-            const withinTimeLimit = this.lastAddressResponse
-              ? moment(this.lastAddressResponse).add(1, 'minute').isAfter(moment(), 'minute')
+            const withinTimeLimit = this.updatedAt
+              ? moment(this.updatedAt).add(1, 'minute').isAfter(moment(), 'minute')
               : false
 
             if (!withinTimeLimit) {
-              this.updateAllAddresses()
+              this.updateAll()
             }
           })
       }
@@ -179,36 +191,52 @@
           this.inputErrorMessage = 'Not a valid address'
           this.inputInvalid = true
         } else {
-          this.push('storedAddresses', {address: this.addressInput})
-          this.updateAllAddresses()
+          this.push('storedAddresses', this.addressInput)
+          this.updateAll()
           this.addressInput = ''
         }
       }
 
       addressExists(a) {
-        return this.storedAddresses.find(({address}) => address === a)
+        return this.storedAddresses.find((address) => address === a)
       }
 
       deleteAddress(e) {
         this.splice('storedAddresses', e.model.get('itemsIndex'), 1)
       }
 
-      updateAllAddresses() {
+      updateAll() {
         if (this.storedAddresses.length === 0) {
           return
         }
+        const updatePromises = [
+          this.updateAddresses(),
+          this.updatePrice(),
+        ]
+        Promise.all(updatePromises)
+          .then(() => {
+            this.updatedAt = new Date()
+          })
+      }
 
-        const addressParam = this.storedAddresses.map(({address}) => address).join(';')
+      updateAddresses() {
+        const addressParam = this.storedAddresses.join(';')
         this.addressUrl = `https://api.blockcypher.com/v1/btc/main/addrs/${addressParam}/balance`
 
-        const request = this.$.balanceRequest.generateRequest()
-        request.completes.then((e) => {
-          this.lastAddressResponse = new Date()
-          this.addressInfo = [].concat(e.parseResponse())
+        const request = this.$.addressRequest.generateRequest()
+        return request.completes.then((e) => {
+          this.addressData = [].concat(e.parseResponse())
             .reduce((acc, address) => {
               acc[address.address] = address
               return acc
             }, {})
+        })
+      }
+
+      updatePrice() {
+        const request = this.$.priceRequest.generateRequest()
+        return request.completes.then((e) => {
+          this.priceData = e.parseResponse()
         })
       }
 
@@ -224,22 +252,31 @@
         }
       }
 
-      _formatBalance(addresses, addressInfo, btcFormat) {
-        if (!(addresses && addressInfo && btcFormat)) {
-          return '- BTC'
-        }
-        const totalAmount = [].concat(addresses)
-          .map(({address}) => address)
+      getBalance(addresses, addressData) {
+        return [].concat(addresses)
           .reduce((amount, address) => {
-            amount += addressInfo[address] ? addressInfo[address].balance : 0
+            amount += addressData[address] ? addressData[address].balance : 0
             return amount
           }, 0)
-        const {divideBy, decimalCount} = this.btcFormats.find(({name}) => name === btcFormat)
-        const fixedAmount = (totalAmount / divideBy).toFixed(decimalCount)
-        return fixedAmount + ' ' + btcFormat
       }
 
+      _formatBalance(btcFormat, addresses, addressData) {
+        if (!(btcFormat && addresses && addressData)) {
+          return '- ' + btcFormat || 'BTC'
+        }
+        const balance = this.getBalance(addresses, addressData)
+        const {divideBy, decimalCount} = this.btcFormats.find(({name}) => name === btcFormat)
+        const fixedBalance = (balance / divideBy).toFixed(decimalCount)
+        return fixedBalance + ' ' + btcFormat
+      }
 
+      _formatPrice(priceData, addresses, addressData) {
+        if (!(priceData && addresses && addressData)) {
+          return '- USD'
+        }
+        const amount = this.getBalance(addresses, addressData) / 100000000
+        return (amount * priceData.USD).toFixed(2) + ' USD'
+      }
     }
 
 window.customElements.define(Balances.is, Balances)
