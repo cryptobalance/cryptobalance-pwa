@@ -26,7 +26,8 @@
     "neon-animation": "PolymerElements/neon-animation#^2.0.2",
     "web-animations-js": "^2.3.1",
     "moment": "^2.20.1",
-    "iron-collapse": "PolymerElements/iron-collapse#^2.0.0"
+    "iron-collapse": "PolymerElements/iron-collapse#^2.0.0",
+    "granite-qrcode-generator": "LostInBrittany/granite-qrcode-generator#^1.1.4"
   },
   "resolutions": {
     "polymer": "^2.0.0"

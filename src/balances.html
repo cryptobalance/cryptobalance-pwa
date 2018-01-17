@@ -10,6 +10,7 @@
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/granite-qrcode-generator/granite-qrcode-generator.html">
 <link rel="import" href="shared-styles.html">
 <script src="../bower_components/moment/min/moment.min.js"></script>
 <script src="../browserify-libs.js"></script>
@@ -21,9 +22,6 @@
         --paper-icon-button-ink-color: var(--app-primary-color);
       }
       div.list paper-item {
-        border-bottom: 1px solid var(--paper-grey-400);
-      }
-      div.list paper-item:first-child {
         border-top: 1px solid var(--paper-grey-400);
       }
       paper-button {
@@ -38,9 +36,15 @@
       paper-button:hover {
         background-color: var(--paper-indigo-400);
       }
+      paper-item {
+        --paper-item-focused-before: {
+          background-color: white;
+        }
+      }
       footer {
         position: fixed;
         bottom: 0;
+        left: 0;
         text-align: center;
         font-weight: bold;
         color: var(--app-primary-color);
@@ -48,13 +52,33 @@
         width: 100%;
         padding: 5px 0;
       }
+      .collapsed {
+        max-width: 600px;
+      }
+      .collapsed .info {
+        padding-top: 8px;
+      }
+      .collapsed .label {
+        width: 50%;
+      }
+      .collapsed .value {
+        width: 50%;
+        text-align: right;
+      }
       .container {
-        padding: 5px 5px 5px 5px;
-        display: flex;
+        padding: 16px 16px;
+      }
+      .center-text {
         text-align: center;
       }
       .secondary {
         background-color: var(--app-secondary-color);
+      }
+      .green {
+        color: var(--paper-green-600);
+      }
+      .orange {
+        color: var(--paper-orange-600);
       }
       .red {
         color: var(--paper-red-600);
@@ -66,6 +90,9 @@
       .small-text {
         font-size: 12px;
       }
+      .medium-text {
+        font-size: 14px;
+      }
       .bold {
         font-weight: bold;
       }
@@ -74,7 +101,7 @@
       }
     </style>
 
-    <div class="container secondary primary-text layout horizontal around-justified center">
+    <div class="container center-text secondary primary-text layout horizontal around-justified center">
       <paper-icon-button icon="[[_getAddIcon(addSpaceOpened)]]" class="big-icon" on-click="toggleAddSpace"></paper-icon-button>
       <div>
         <span class="bold">[[_formatBalance(btcFormat, storedAddresses, addressData)]]</span>
@@ -101,9 +128,9 @@
       </div>
     </iron-collapse>
 
-    <div class="list">
+    <div class="list" tabindex="0">
       <template is="dom-repeat" items="{{storedAddresses}}">
-        <paper-item>
+        <paper-item on-click="toggleDetails">
           <paper-item-body two-line>
             <div>[[item]]</div>
             <div secondary class="primary-text">
@@ -111,8 +138,48 @@
               <span>([[_formatPrice(priceData, item, addressData)]])</span>
             </div>
           </paper-item-body>
-          <paper-icon-button icon="delete" class="red" on-click="deleteAddress"></paper-button>
+          <paper-icon-button icon="[[_getDetailsIcon(item, addressDetailsOpened)]]"></paper-icon-button>
         </paper-item>
+        <iron-collapse opened="[[_isDetailsOpen(item, addressDetailsOpened)]]">
+          <div class="collapsed">
+            <div class="layout horizontal around-justified">
+              <a href$="https://live.blockcypher.com/btc/address/[[item]]" target="_blank">
+                <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
+              </a>
+              <paper-icon-button icon="create" class="green" on-click=""></paper-icon-button>
+              <paper-icon-button icon="delete" class="red" on-click="deleteAddress"></paper-icon-button>
+            </div>
+            <div class="layout horizontal wrap center-justified">
+              <granite-qrcode-generator
+                class="container qr"
+                data="[[item]]"
+                mode="octet"
+                margin="0"
+                modulesize="4"
+                auto>
+              </granite-qrcode-generator>
+              <div class="container layout vertical justified flex">
+                <span class="medium-text">[[item]]</span>
+                <div class="info small-text layout horizontal">
+                  <span class="label">No. transactions</span>
+                  <span class="value">[[_getTransactionCount(item, addressData)]]</span>
+                </div>
+                <div class="info small-text layout horizontal">
+                  <span class="label">Received amount</span>
+                  <span class="value">[[_getReceivedAmount(item, addressData, btcFormat)]]</span>
+                </div>
+                <div class="info small-text layout horizontal">
+                  <span class="label">Sent amount</span>
+                  <span class="value">[[_getSentAmount(item, addressData, btcFormat)]]</span>
+                </div>
+                <div class="info small-text layout horizontal">
+                  <span class="label">Unconfirmed balance</span>
+                  <span class="value">[[_getUnconfirmedBalance(item, addressData, btcFormat)]]</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </iron-collapse>
       </template>
     </div>
 
@@ -140,6 +207,7 @@
             type: Boolean,
             value: false,
           },
+          addressDetailsOpened: String,
           inputInvalid: {
             type: Boolean,
             value: false,
@@ -179,8 +247,43 @@
         this.addSpaceOpened = !this.addSpaceOpened
       }
 
+      toggleDetails(e) {
+        const address = e.model.get('item')
+        this.addressDetailsOpened = this.addressDetailsOpened === address ? '' : address
+      }
+
+      _isDetailsOpen(address, addressDetailsOpened) {
+        return address === addressDetailsOpened
+      }
+
       _getAddIcon(addSpaceOpened) {
         return addSpaceOpened ? 'close' : 'add'
+      }
+
+      _getDetailsIcon(address, addressDetailsOpened) {
+        return this._isDetailsOpen(address, addressDetailsOpened) ? 'expand-more' : 'chevron-right'
+      }
+
+      _getTransactionCount(address, addressData) {
+        return addressData && addressData[address] ? addressData[address].n_tx : '-'
+      }
+
+      _getReceivedAmount(address, addressData, btcFormat) {
+        return addressData && addressData[address] && btcFormat
+          ? this.formatAmount(btcFormat, addressData[address].total_received)
+          : '-'
+      }
+
+      _getSentAmount(address, addressData, btcFormat) {
+        return addressData && addressData[address] && btcFormat
+          ? this.formatAmount(btcFormat, addressData[address].total_sent)
+          : '-'
+      }
+
+      _getUnconfirmedBalance(address, addressData, btcFormat) {
+        return addressData && addressData[address] && btcFormat
+          ? this.formatAmount(btcFormat, addressData[address].unconfirmed_balance)
+          : '-'
       }
 
       addAddress() {
@@ -203,6 +306,7 @@
 
       deleteAddress(e) {
         this.splice('storedAddresses', e.model.get('itemsIndex'), 1)
+        this.addressDetailsOpened = ''
       }
 
       updateAll() {
@@ -260,14 +364,18 @@
           }, 0)
       }
 
+      formatAmount(btcFormat, amount) {
+        const {divideBy, decimalCount} = this.btcFormats.find(({name}) => name === btcFormat)
+        const fixedBalance = (amount / divideBy).toFixed(decimalCount)
+        return fixedBalance + ' ' + btcFormat
+      }
+
       _formatBalance(btcFormat, addresses, addressData) {
         if (!(btcFormat && addresses && addressData)) {
           return '- ' + btcFormat || 'BTC'
         }
         const balance = this.getBalance(addresses, addressData)
-        const {divideBy, decimalCount} = this.btcFormats.find(({name}) => name === btcFormat)
-        const fixedBalance = (balance / divideBy).toFixed(decimalCount)
-        return fixedBalance + ' ' + btcFormat
+        return this.formatAmount(btcFormat, balance)
       }
 
       _formatPrice(priceData, addresses, addressData) {
