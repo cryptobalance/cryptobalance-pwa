@@ -1,0 +1,177 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/granite-qrcode-generator/granite-qrcode-generator.html">
+
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="preferences-data.html">
+
+<dom-module id="address-item">
+  <template>
+    <style include="shared-styles iron-flex iron-flex-alignment">
+      :host(:not([is-narrow])) .list-item {
+        box-shadow: var(--shadow-elevation-2dp_-_box-shadow);
+        margin: 8px;
+      }
+      :host([is-narrow]) .list-item {
+        border-top: 1px solid var(--paper-grey-400);
+      }
+      paper-item {
+        --paper-item-focused-before: {
+          background-color: white;
+        }
+      }
+      .list-item {
+        background-color: white;
+      }
+      .collapsed {
+        max-width: 600px;
+      }
+      .collapsed .info {
+        padding-top: 4px;
+      }
+      .collapsed .label {
+        width: 50%;
+      }
+      .collapsed .value {
+        width: 50%;
+        text-align: right;
+      }
+    </style>
+
+    <preferences-data btc-format="{{btcFormat}}"></preferences-data>
+
+    <div class="list-item">
+      <paper-item on-click="_toggleDetails">
+        <paper-item-body two-line>
+          <div>[[address]]</div>
+          <div secondary class="primary-text">
+            <span class="bold medium-text">[[_formatBalance(btcFormat, addressData)]]</span>
+            <span>([[_formatPrice(priceData, addressData)]])</span>
+          </div>
+        </paper-item-body>
+        <paper-icon-button icon="[[_getArrowIcon(isDetailsOpen)]]"></paper-icon-button>
+      </paper-item>
+      <iron-collapse opened="[[isDetailsOpen]]">
+        <div class="collapsed">
+          <div class="layout horizontal around-justified">
+            <a href$="https://live.blockcypher.com/btc/address/[[address]]" target="_blank">
+              <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
+            </a>
+            <paper-icon-button icon="create" class="green" on-click="TODO"></paper-icon-button>
+            <paper-icon-button icon="delete" class="red" on-click="TODO"></paper-icon-button>
+          </div>
+          <div class="layout horizontal wrap center-justified">
+            <granite-qrcode-generator
+              class="container qr"
+              data="[[address]]"
+              mode="octet"
+              margin="0"
+              modulesize="4"
+              auto>
+            </granite-qrcode-generator>
+            <div class="container layout vertical justified flex">
+              <span class="medium-text">[[address]]</span>
+              <div class="info small-text layout horizontal">
+                <span class="label">No. transactions</span>
+                <span class="value">[[_getTransactionCount(addressData)]]</span>
+              </div>
+              <div class="info small-text layout horizontal">
+                <span class="label">Received amount</span>
+                <span class="value">[[_getReceivedAmount(addressData, btcFormat)]]</span>
+              </div>
+              <div class="info small-text layout horizontal">
+                <span class="label">Sent amount</span>
+                <span class="value">[[_getSentAmount(addressData, btcFormat)]]</span>
+              </div>
+              <div class="info small-text layout horizontal">
+                <span class="label">Unconfirmed balance</span>
+                <span class="value">[[_getUnconfirmedBalance(addressData, btcFormat)]]</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </iron-collapse>
+    </div>
+  </template>
+
+  <script>
+    class AddressItem extends Polymer.Element {
+      static get is() { return 'address-item' }
+
+      static get properties() {
+        return {
+          address: String,
+          addressData: Object,
+          isDetailsOpen: {
+            type: Boolean,
+            value: false,
+          },
+          isNarrow: {
+            type: Boolean,
+            reflectToAttribute: true,
+          },
+          priceData: Object,
+        }
+      }
+
+      _formatBalance(btcFormat, addressData) {
+        if (!(btcFormat && addressData && addressData[this.address])) {
+          return '- ' + (btcFormat ? btcFormat.name : 'BTC')
+        }
+        return this.formatAmount({btcFormat, amount: addressData[this.address].balance})
+      }
+
+      _formatPrice(priceData, addressData) {
+        if (!(priceData && addressData && addressData[this.address])) {
+          return '- USD'
+        }
+        const amount = addressData[this.address].balance / 100000000
+        return (amount * priceData.USD).toFixed(2) + ' USD'
+      }
+
+      _getArrowIcon() {
+        return this.isDetailsOpen ? 'expand-more' : 'chevron-right'
+      }
+
+      _toggleDetails() {
+        this.isDetailsOpen = !this.isDetailsOpen
+      }
+
+      _getTransactionCount(addressData) {
+        return addressData && addressData[this.address] ? addressData[this.address].n_tx : '-'
+      }
+
+      _getReceivedAmount(addressData, btcFormat) {
+        return addressData && addressData[this.address] && btcFormat
+          ? this.formatAmount({btcFormat, amount: addressData[this.address].total_received})
+          : '-'
+      }
+
+      _getSentAmount(addressData, btcFormat) {
+        return addressData && addressData[this.address] && btcFormat
+          ? this.formatAmount({btcFormat, amount: addressData[this.address].total_sent})
+          : '-'
+      }
+
+      _getUnconfirmedBalance(addressData, btcFormat) {
+        return addressData && addressData[this.address] && btcFormat
+          ? this.formatAmount({btcFormat, amount: addressData[this.address].unconfirmed_balance})
+          : '-'
+      }
+
+      formatAmount({btcFormat, amount}) {
+        const {divideBy, decimalCount} = btcFormat
+
+        const fixedBalance = (amount / divideBy).toFixed(decimalCount)
+        return fixedBalance + ' ' + btcFormat.name
+      }
+    }
+
+window.customElements.define(AddressItem.is, AddressItem)
+  </script>
+</dom-module>

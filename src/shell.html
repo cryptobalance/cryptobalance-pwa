@@ -8,12 +8,13 @@
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
-<link rel="import" href="preferences.html">
+<link rel="import" href="wallet-navigator.html">
+<link rel="lazy-import" href="preferences.html">
 <link rel="lazy-import" href="balances.html">
 <link rel="lazy-import" href="not-found.html">
 
@@ -35,12 +36,13 @@
         display: none;
       }
 
-      app-drawer-layout:not([narrow]) [drawer-toggle] {
+      :host(:not([is-narrow])) .drawer-btn {
         display: none;
       }
 
       app-drawer {
         border-right: 1px solid var(--paper-grey-600);
+        z-index: 3;
       }
 
       app-header {
@@ -62,6 +64,8 @@
       }
 
       iron-pages {
+        height: 100%;
+        width: 100%;
         max-width: 1024px;
         margin: 0 auto;
       }
@@ -69,75 +73,53 @@
       a {
         text-decoration: none;
       }
-
-      .drawer-list {
-        margin: 0 20px;
-      }
-
-      .drawer-list a {
-        display: block;
-        padding: 0 16px;
-        line-height: 40px;
-        color: black;
-      }
-
-      .drawer-list a.iron-selected {
-        background-color: var(--app-secondary-color);
-      }
     </style>
 
-    <app-location
-      route="{{route}}"
-      url-space-regex="^[[rootPath]]">
-    </app-location>
 
-    <app-route
-      route="{{route}}"
-      pattern="[[rootPath]]:page"
-      data="{{routeData}}"
-      tail="{{subroute}}">
-    </app-route>
+    <app-location route="{{route}}" url-space-regex="^[[rootPath]]"></app-location>
 
-    <app-drawer-layout fullbleed narrow="{{narrow}}">
-      <!-- Drawer content -->
-      <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]" tabindex="0">
-        <app-toolbar>Menu</app-toolbar>
-        <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="balances" href="[[rootPath]]balances">Balances</a>
-          <a name="preferences" href="[[rootPath]]preferences">Preferences</a>
-        </iron-selector>
-      </app-drawer>
+    <app-route route="{{route}}" pattern="[[rootPath]]:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
 
-      <!-- Main content -->
-      <app-header-layout has-scrolling-region>
+    <iron-media-query query="max-width: 770px" query-matches="{{isNarrow}}"></iron-media-query>
 
-        <app-header slot="header" condenses reveals effects="waterfall">
-          <app-toolbar>
-            <a href="[[rootPath]]balances" class="back-btn">
-              <paper-icon-button icon="arrow-back"></paper-icon-button>
-            </a>
-            <paper-icon-button class="toolbar-btn" icon="menu" drawer-toggle></paper-icon-button>
-            <div class="layout flex" main-title>[[_getPageName(page)]]</div>
-            <a href="[[rootPath]]preferences" class="toolbar-btn">
-              <paper-icon-button icon="settings"></paper-icon-button>
-            </a>
-            <a href="[[rootPath]]about" class="toolbar-btn">
-              <paper-icon-button icon="help"></paper-icon-button>
-            </a>
-          </app-toolbar>
-        </app-header>
+    <!-- Drawer navigation for narrow screens -->
+    <dom-if if="[[isNarrow]]">
+      <template>
+        <app-drawer opened={{isDrawerOpen}} swipe-open tabindex="0">
+          <wallet-navigator is-drawer></wallet-navigator>
+        </app-drawer>
+      </template>
+    </dom-if>
 
-        <iron-pages
-          selected="[[page]]"
-          attr-for-selected="name"
-          fallback-selection="not-found"
-          role="main">
-          <x-balances name="balances" btc-formats="[[btcFormats]]"></x-balances>
-          <x-preferences name="preferences" btc-formats="{{btcFormats}}"></x-preferences>
-          <not-found name="not-found"></not-found>
-        </iron-pages>
-      </app-header-layout>
-    </app-drawer-layout>
+    <!-- Main content -->
+    <app-header-layout fullbleed>
+      <app-header slot="header" condenses reveals effects="waterfall">
+        <app-toolbar>
+          <a href="[[rootPath]]balances" class="back-btn">
+            <paper-icon-button icon="arrow-back"></paper-icon-button>
+          </a>
+          <paper-icon-button class="toolbar-btn drawer-btn" icon="menu" on-click="_toggleDrawer"></paper-icon-button>
+          <div class="layout flex" main-title>[[_getPageName(page)]]</div>
+          <a href="[[rootPath]]preferences" class="toolbar-btn">
+            <paper-icon-button icon="settings"></paper-icon-button>
+          </a>
+          <a href="[[rootPath]]about" class="toolbar-btn">
+            <paper-icon-button icon="help"></paper-icon-button>
+          </a>
+        </app-toolbar>
+      </app-header>
+
+      <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="not-found" role="main">
+        <x-balances
+          name="balances"
+          page="[[page]]"
+          is-narrow="[[isNarrow]]"
+          is-drawer-open="{{isDrawerOpen}}">
+        </x-balances>
+        <x-preferences name="preferences"></x-preferences>
+        <not-found name="not-found"></not-found>
+      </iron-pages>
+    </app-header-layout>
   </template>
 
   <script>
@@ -146,6 +128,14 @@
 
       static get properties() {
         return {
+          isDrawerOpen: {
+            type: Boolean,
+            value: false,
+          },
+          isNarrow: {
+            type: Boolean,
+            reflectToAttribute: true,
+          },
           page: {
             type: String,
             reflectToAttribute: true,
@@ -170,10 +160,8 @@
         // Default to 'balances' in that case.
         this.page = page || 'balances'
 
-        // Close a non-persistent drawer when the page & route are changed.
-        if (!this.$.drawer.persistent) {
-          this.$.drawer.close()
-        }
+        // Close the drawer when the page & route are changed.
+        this.isDrawerOpen = false
       }
 
       _pageChanged(page) {
@@ -192,13 +180,17 @@
 
       _getPageName(page) {
         switch (page) {
-          case 'balances':
-            return 'Balances'
+          case 'about':
+            return 'About'
           case 'preferences':
             return 'Preferences'
           default:
             return 'Crypto Balance'
         }
+      }
+
+      _toggleDrawer() {
+        this.isDrawerOpen = !this.isDrawerOpen
       }
     }
 

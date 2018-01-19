@@ -1,0 +1,49 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+
+<dom-module id="preferences-data">
+  <template>
+    <app-localstorage-document key="btcFormat" data="{{savedBtcFormat}}">
+  </template>
+
+  <script>
+    class PreferencesData extends Polymer.Element {
+      static get is() { return 'preferences-data' }
+
+      static get properties() {
+        return {
+          btcFormat: {
+            type: Object,
+            computed: '_computeBtcFormat(savedBtcFormat, btcFormats)',
+            notify: true,
+          },
+          btcFormats: {
+            type: Array,
+            readOnly: true,
+            notify: true,
+            value: () => [
+              {name: 'BTC', divideBy: 100000000, decimalCount: 8},
+              {name: 'mBTC', divideBy: 100000, decimalCount: 6},
+              {name: 'bits', divideBy: 100, decimalCount: 2},
+              {name: 'satoshis', divideBy: 1, decimalCount: 0},
+            ],
+          },
+          savedBtcFormat: {
+            type: String,
+            value: 'BTC',
+            notify: true,
+          },
+        }
+      }
+
+      _computeBtcFormat(savedBtcFormat, btcFormats) {
+        if (!(savedBtcFormat && btcFormats)) {
+          return
+        }
+        return btcFormats.find(({name}) => name === savedBtcFormat)
+      }
+    }
+
+window.customElements.define(PreferencesData.is, PreferencesData)
+  </script>
+</dom-module>

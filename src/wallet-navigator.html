@@ -1,0 +1,61 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="wallet-navigator">
+  <template>
+    <style include="shared-styles iron-flex iron-flex-alignment">
+      :host {
+        width: var(--app-drawer-width, 256px);
+        height: 100%;
+      }
+      :host(:not([is-drawer])) .content {
+        box-shadow: var(--shadow-elevation-2dp_-_box-shadow);
+        margin: 8px;
+        height: 100%;
+      }
+      .toolbar {
+        line-height: 80px;
+        font-size: 22px;
+      }
+      .drawer-list {
+        margin: 0 20px;
+      }
+      .drawer-list a {
+        display: block;
+        padding: 0 16px;
+        line-height: 40px;
+        color: black;
+      }
+      .drawer-list a.iron-selected {
+        font-weight: bold;
+        color: var(--app-primary-color);
+        background-color: var(--app-secondary-color);
+      }
+      .btn {
+        margin: 32px 0px;
+      }
+    </style>
+
+    <div class="toolbar bold bg-white primary-text large-text center-text">Wallets</div>
+    <div class="bg-white content">
+      <iron-selector selected="balances" attr-for-selected="name" class="drawer-list" role="navigation">
+        <a name="balances">Default</a>
+      </iron-selector>
+      <div class="layout horizontal center-justified">
+        <paper-button raised class="bold btn">new wallet</paper-button>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class WalletNavigator extends Polymer.Element {
+      static get is() { return 'wallet-navigator' }
+    }
+
+window.customElements.define(WalletNavigator.is, WalletNavigator)
+    </script>
+</dom-module>

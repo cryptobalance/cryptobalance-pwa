@@ -3,7 +3,8 @@
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/neon-animation/web-animations.html">
-<link rel="import" href="../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
+
+<link rel="import" href="preferences-data.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="x-preferences">
@@ -16,20 +17,21 @@
       }
     </style>
 
+    <preferences-data btc-formats="{{btcFormats}}" saved-btc-format="{{savedBtcFormat}}"></preferences-data>
+
     <div class="container">
       <paper-dropdown-menu label="Format">
         <paper-listbox
           slot="dropdown-content"
           attr-for-selected="text-content"
           selected="{{savedBtcFormat}}">
-          <template is="dom-repeat" items="{{btcFormats}}">
+          <template is="dom-repeat" items="[[btcFormats]]">
             <paper-item>[[item.name]]</paper-item>
           </template>
         </paper-listbox>
       </paper-dropdown-menu>
     </div>
 
-    <app-localstorage-document key="btcFormat" data="{{savedBtcFormat}}">
   </template>
 
   <script>
@@ -38,21 +40,6 @@
 
       static get properties() {
         return {
-          btcFormats: {
-            type: Array,
-            readOnly: true,
-            notify: true,
-            value: () => [
-              {name: 'BTC', divideBy: 100000000, decimalCount: 8},
-              {name: 'mBTC', divideBy: 100000, decimalCount: 6},
-              {name: 'bits', divideBy: 100, decimalCount: 2},
-              {name: 'satoshis', divideBy: 1, decimalCount: 0},
-            ],
-          },
-          savedBtcFormat: {
-            type: String,
-            value: 'BTC',
-          },
         }
       }
     }

@@ -2,16 +2,18 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../bower_components/paper-item/paper-item.html">
-<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
 <link rel="import" href="../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
-<link rel="import" href="../bower_components/granite-qrcode-generator/granite-qrcode-generator.html">
+
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="wallet-navigator.html">
+<link rel="import" href="address-item.html">
+<link rel="import" href="preferences-data.html">
+
 <script src="../bower_components/moment/min/moment.min.js"></script>
 <script src="../browserify-libs.js"></script>
 
@@ -20,26 +22,6 @@
     <style include="shared-styles iron-flex iron-flex-alignment">
       paper-icon-button {
         --paper-icon-button-ink-color: var(--app-primary-color);
-      }
-      div.list paper-item {
-        border-top: 1px solid var(--paper-grey-400);
-      }
-      paper-button {
-        -webkit-font-smoothing: antialiased;
-        background-color: var(--app-primary-color);
-        color: white;
-        --paper-button-raised-keyboard-focus: {
-          background-color: var(--paper-pink-a200) !important;
-          color: white !important;
-        }
-      }
-      paper-button:hover {
-        background-color: var(--paper-indigo-400);
-      }
-      paper-item {
-        --paper-item-focused-before: {
-          background-color: white;
-        }
       }
       footer {
         position: fixed;
@@ -52,146 +34,69 @@
         width: 100%;
         padding: 5px 0;
       }
-      .collapsed {
-        max-width: 600px;
+      .full-height {
+        height: 100%;
       }
-      .collapsed .info {
-        padding-top: 8px;
-      }
-      .collapsed .label {
-        width: 50%;
-      }
-      .collapsed .value {
-        width: 50%;
-        text-align: right;
-      }
-      .container {
-        padding: 16px 16px;
-      }
-      .center-text {
-        text-align: center;
-      }
-      .secondary {
-        background-color: var(--app-secondary-color);
-      }
-      .green {
-        color: var(--paper-green-600);
-      }
-      .orange {
-        color: var(--paper-orange-600);
-      }
-      .red {
-        color: var(--paper-red-600);
-      }
-      .big-icon {
-        height: 48px;
-        width: 48px;
-      }
-      .small-text {
-        font-size: 12px;
-      }
-      .medium-text {
-        font-size: 14px;
-      }
-      .bold {
-        font-weight: bold;
-      }
-      .primary-text {
-        color: var(--app-primary-color);
+      .toolbar .amounts {
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.14);
       }
     </style>
 
-    <div class="container center-text secondary primary-text layout horizontal around-justified center">
-      <paper-icon-button icon="[[_getAddIcon(addSpaceOpened)]]" class="big-icon" on-click="toggleAddSpace"></paper-icon-button>
-      <div>
-        <span class="bold">[[_formatBalance(btcFormat, storedAddresses, addressData)]]</span>
-        <br>
-        <span class="small-text bold">[[_formatPrice(priceData, storedAddresses, addressData)]]</span>
-      </div>
-      <div class="small-text">
-        <span>Last update</span>
-        <br>
-        <span>[[_formatUpdatedTime(updatedAt)]]</span>
-      </div>
-    </div>
-    <iron-collapse opened="[[addSpaceOpened]]">
-      <div class="container primary-text layout horizontal">
-        <paper-input
-          class="flex"
-          value="{{addressInput}}"
-          label="Enter a Bitcoin address"
-          auto-validate="false"
-          error-message="{{inputErrorMessage}}"
-          invalid="{{inputInvalid}}">
-        </paper-input>
-        <paper-button raised class="primary self-center" on-click="addAddress">add</paper-button>
-      </div>
-    </iron-collapse>
+    <preferences-data btc-format="{{btcFormat}}"></preferences-data>
 
-    <div class="list" tabindex="0">
-      <template is="dom-repeat" items="{{storedAddresses}}">
-        <paper-item on-click="toggleDetails">
-          <paper-item-body two-line>
-            <div>[[item]]</div>
-            <div secondary class="primary-text">
-              <span class="bold">[[_formatBalance(btcFormat, item, addressData)]]</span>
-              <span>([[_formatPrice(priceData, item, addressData)]])</span>
-            </div>
-          </paper-item-body>
-          <paper-icon-button icon="[[_getDetailsIcon(item, addressDetailsOpened)]]"></paper-icon-button>
-        </paper-item>
-        <iron-collapse opened="[[_isDetailsOpen(item, addressDetailsOpened)]]">
-          <div class="collapsed">
-            <div class="layout horizontal around-justified">
-              <a href$="https://live.blockcypher.com/btc/address/[[item]]" target="_blank">
-                <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
-              </a>
-              <paper-icon-button icon="create" class="green" on-click=""></paper-icon-button>
-              <paper-icon-button icon="delete" class="red" on-click="deleteAddress"></paper-icon-button>
-            </div>
-            <div class="layout horizontal wrap center-justified">
-              <granite-qrcode-generator
-                class="container qr"
-                data="[[item]]"
-                mode="octet"
-                margin="0"
-                modulesize="4"
-                auto>
-              </granite-qrcode-generator>
-              <div class="container layout vertical justified flex">
-                <span class="medium-text">[[item]]</span>
-                <div class="info small-text layout horizontal">
-                  <span class="label">No. transactions</span>
-                  <span class="value">[[_getTransactionCount(item, addressData)]]</span>
-                </div>
-                <div class="info small-text layout horizontal">
-                  <span class="label">Received amount</span>
-                  <span class="value">[[_getReceivedAmount(item, addressData, btcFormat)]]</span>
-                </div>
-                <div class="info small-text layout horizontal">
-                  <span class="label">Sent amount</span>
-                  <span class="value">[[_getSentAmount(item, addressData, btcFormat)]]</span>
-                </div>
-                <div class="info small-text layout horizontal">
-                  <span class="label">Unconfirmed balance</span>
-                  <span class="value">[[_getUnconfirmedBalance(item, addressData, btcFormat)]]</span>
-                </div>
-              </div>
-            </div>
+    <div class="full-height layout horizontal">
+      <!-- Always visible navigation for non narrow screens -->
+      <dom-if if="[[!isNarrow]]">
+        <template>
+          <wallet-navigator></wallet-navigator>
+        </template>
+      </dom-if>
+
+      <!-- Main content -->
+      <div class="flex">
+        <div class="toolbar bg-white center-text primary-text layout horizontal around-justified center">
+          <paper-icon-button icon="[[_getAddIcon(addSpaceOpened)]]" class="big-icon" on-click="toggleAddSpace"></paper-icon-button>
+          <div class="amounts">
+            <span class="large-text">[[_formatBalance(btcFormat, storedAddresses, addressData)]]</span>
+            <br>
+            <span class="medium-text">[[_formatPrice(priceData, storedAddresses, addressData)]]</span>
+          </div>
+          <div class="small-text">
+            <span>Last update</span>
+            <br>
+            <span>[[_formatUpdatedTime(updatedAt)]]</span>
+          </div>
+        </div>
+        <iron-collapse opened="[[addSpaceOpened]]">
+          <div class="container primary-text layout horizontal">
+            <paper-input
+              class="flex"
+              value="{{addressInput}}"
+              label="Enter a Bitcoin address"
+              auto-validate="false"
+              error-message="{{inputErrorMessage}}"
+              invalid="{{inputInvalid}}">
+            </paper-input>
+            <paper-button raised class="self-center" on-click="addAddress">add</paper-button>
           </div>
         </iron-collapse>
-      </template>
+
+        <div class="list" tabindex="0">
+          <template is="dom-repeat" items="{{storedAddresses}}">
+            <address-item address="[[item]]" address-data="[[addressData]]" price-data="[[priceData]]" is-narrow="[[isNarrow]]"></address-item>
+          </template>
+        </div>
+      </div>
     </div>
 
     <footer>1 BTC = [[priceData.USD]] USD</footer>
 
     <iron-ajax id="addressRequest" url="{{addressUrl}}"></iron-ajax>
     <iron-ajax id="priceRequest" url="https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD"></iron-ajax>
-    <app-localstorage-document id="updatedAt" key="updatedAt" data="{{updatedAt}}">
-    <app-localstorage-document id="addressData" key="addressData" data="{{addressData}}">
-    <app-localstorage-document id="priceData" key="priceData" data="{{priceData}}">
-    <app-localstorage-document id="storedAddresses" key="storedAddresses" data="{{storedAddresses}}">
-    <app-localstorage-document key="btcFormat" data="{{btcFormat}}">
+    <app-localstorage-document id="updatedAt" key="updatedAt" data="{{updatedAt}}"></app-localstorage-document>
+    <app-localstorage-document id="addressData" key="addressData" data="{{addressData}}"></app-localstorage-document>
+    <app-localstorage-document id="priceData" key="priceData" data="{{priceData}}"></app-localstorage-document>
+    <app-localstorage-document id="storedAddresses" key="storedAddresses" data="{{storedAddresses}}"></app-localstorage-document>
   </template>
 
   <script>
@@ -213,6 +118,9 @@
             value: false,
           },
           inputErrorMessage: String,
+          isDrawerOpen: Boolean,
+          isNarrow: Boolean,
+          page: String,
           priceData: Object,
           storedAddresses: {
             type: Array,
@@ -247,43 +155,8 @@
         this.addSpaceOpened = !this.addSpaceOpened
       }
 
-      toggleDetails(e) {
-        const address = e.model.get('item')
-        this.addressDetailsOpened = this.addressDetailsOpened === address ? '' : address
-      }
-
-      _isDetailsOpen(address, addressDetailsOpened) {
-        return address === addressDetailsOpened
-      }
-
       _getAddIcon(addSpaceOpened) {
         return addSpaceOpened ? 'close' : 'add'
-      }
-
-      _getDetailsIcon(address, addressDetailsOpened) {
-        return this._isDetailsOpen(address, addressDetailsOpened) ? 'expand-more' : 'chevron-right'
-      }
-
-      _getTransactionCount(address, addressData) {
-        return addressData && addressData[address] ? addressData[address].n_tx : '-'
-      }
-
-      _getReceivedAmount(address, addressData, btcFormat) {
-        return addressData && addressData[address] && btcFormat
-          ? this.formatAmount(btcFormat, addressData[address].total_received)
-          : '-'
-      }
-
-      _getSentAmount(address, addressData, btcFormat) {
-        return addressData && addressData[address] && btcFormat
-          ? this.formatAmount(btcFormat, addressData[address].total_sent)
-          : '-'
-      }
-
-      _getUnconfirmedBalance(address, addressData, btcFormat) {
-        return addressData && addressData[address] && btcFormat
-          ? this.formatAmount(btcFormat, addressData[address].unconfirmed_balance)
-          : '-'
       }
 
       addAddress() {
@@ -365,14 +238,15 @@
       }
 
       formatAmount(btcFormat, amount) {
-        const {divideBy, decimalCount} = this.btcFormats.find(({name}) => name === btcFormat)
+        const {divideBy, decimalCount} = btcFormat
+
         const fixedBalance = (amount / divideBy).toFixed(decimalCount)
-        return fixedBalance + ' ' + btcFormat
+        return fixedBalance + ' ' + btcFormat.name
       }
 
       _formatBalance(btcFormat, addresses, addressData) {
         if (!(btcFormat && addresses && addressData)) {
-          return '- ' + btcFormat || 'BTC'
+          return '- ' + (btcFormat ? btcFormat.name : 'BTC')
         }
         const balance = this.getBalance(addresses, addressData)
         return this.formatAmount(btcFormat, balance)
