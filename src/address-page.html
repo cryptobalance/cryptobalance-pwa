@@ -19,7 +19,7 @@
 <script src="../bower_components/moment/min/moment.min.js"></script>
 <script src="../browserify-libs.js"></script>
 
-<dom-module id="x-balances">
+<dom-module id="address-page">
   <template>
     <style include="shared-styles iron-flex iron-flex-alignment">
       paper-icon-button {
@@ -107,8 +107,8 @@
   </template>
 
   <script>
-    class Balances extends Polymer.Element {
-      static get is() { return 'x-balances' }
+    class AddressPage extends Polymer.Element {
+      static get is() { return 'address-page' }
 
       static get properties() {
         return {
@@ -126,7 +126,6 @@
           inputErrorMessage: String,
           isDrawerOpen: Boolean,
           isNarrow: Boolean,
-          page: String,
           priceData: Object,
           storedAddresses: {
             type: Array,
@@ -270,6 +269,6 @@
       }
     }
 
-window.customElements.define(Balances.is, Balances)
+window.customElements.define(AddressPage.is, AddressPage)
   </script>
 </dom-module>

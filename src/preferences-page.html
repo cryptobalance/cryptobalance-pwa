@@ -7,7 +7,7 @@
 <link rel="import" href="preferences-data.html">
 <link rel="import" href="shared-styles.html">
 
-<dom-module id="x-preferences">
+<dom-module id="preferences-page">
   <template>
     <style include="shared-styles">
       :host {
@@ -35,8 +35,8 @@
   </template>
 
   <script>
-    class Preferences extends Polymer.Element {
-      static get is() { return 'x-preferences' }
+    class PreferencesPage extends Polymer.Element {
+      static get is() { return 'preferences-page' }
 
       static get properties() {
         return {
@@ -44,6 +44,6 @@
       }
     }
 
-window.customElements.define(Preferences.is, Preferences)
+window.customElements.define(PreferencesPage.is, PreferencesPage)
   </script>
 </dom-module>
