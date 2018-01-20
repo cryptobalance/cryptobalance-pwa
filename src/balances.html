@@ -1,11 +1,13 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
 <link rel="import" href="../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
@@ -27,12 +29,14 @@
         position: fixed;
         bottom: 0;
         left: 0;
-        text-align: center;
-        font-weight: bold;
+        right: 0;
         color: var(--app-primary-color);
         background-color: var(--app-secondary-color);
-        width: 100%;
-        padding: 5px 0;
+        padding: 8px;
+        text-align: center;
+      }
+      footer span {
+        margin-left: 5px;
       }
       .full-height {
         height: 100%;
@@ -89,7 +93,10 @@
       </div>
     </div>
 
-    <footer>1 BTC = [[priceData.USD]] USD</footer>
+    <footer>
+      <iron-icon class="big-icon" src="https://www.cryptocompare.com/media/19633/btc.png"></iron-icon>
+      <span>[[priceData.USD]] USD</span>
+    </footer>
 
     <iron-ajax id="addressRequest" url="{{addressUrl}}"></iron-ajax>
     <iron-ajax id="priceRequest" url="https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD"></iron-ajax>
@@ -112,7 +119,6 @@
             type: Boolean,
             value: false,
           },
-          addressDetailsOpened: String,
           inputInvalid: {
             type: Boolean,
             value: false,
@@ -126,7 +132,10 @@
             type: Array,
             value: () => [],
           },
-          updatedAt: Date,
+          updatedAt: {
+            type: Date,
+            value: null,
+          }
         }
       }
 
@@ -179,13 +188,9 @@
 
       deleteAddress(e) {
         this.splice('storedAddresses', e.model.get('itemsIndex'), 1)
-        this.addressDetailsOpened = ''
       }
 
       updateAll() {
-        if (this.storedAddresses.length === 0) {
-          return
-        }
         const updatePromises = [
           this.updateAddresses(),
           this.updatePrice(),
@@ -197,6 +202,10 @@
       }
 
       updateAddresses() {
+        if (this.storedAddresses.length === 0) {
+          return
+        }
+
         const addressParam = this.storedAddresses.join(';')
         this.addressUrl = `https://api.blockcypher.com/v1/btc/main/addrs/${addressParam}/balance`
 
