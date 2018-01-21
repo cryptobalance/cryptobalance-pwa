@@ -1,11 +1,6 @@
 {
   "entrypoint": "index.html",
   "shell": "src/shell.html",
-  "fragments": [
-    "src/balances.html",
-    "src/preferences.html",
-    "src/not-found.html"
-  ],
   "sources": [
     "src/**/*",
     "images/**/*"
