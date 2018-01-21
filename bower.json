@@ -27,7 +27,9 @@
     "web-animations-js": "^2.3.1",
     "moment": "^2.20.1",
     "iron-collapse": "PolymerElements/iron-collapse#^2.0.0",
-    "granite-qrcode-generator": "LostInBrittany/granite-qrcode-generator#^1.1.4"
+    "granite-qrcode-generator": "LostInBrittany/granite-qrcode-generator#^1.1.4",
+    "app-toasts": "jifalops/app-toasts#^0.4.0",
+    "granite-qrcode-scanner": "LostInBrittany/granite-qrcode-scanner#^1.6.0"
   },
   "resolutions": {
     "polymer": "^2.0.0"

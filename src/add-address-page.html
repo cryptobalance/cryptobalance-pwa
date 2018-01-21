@@ -1,14 +1,143 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icons/image-icons.html">
+<link rel="import" href="../bower_components/app-toasts/app-toasts.html">
+<link rel="import" href="../bower_components/granite-qrcode-scanner/granite-qrcode-scanner.html">
 
 <dom-module id="add-address-page">
   <template>
-    <style include="">
+    <style include="shared-styles iron-flex iron-flex-alignment">
+      :host(:not([scanner-active])) granite-qrcode-scanner {
+        display: none;
+      }
+      paper-button {
+        padding: 0.7em 1.5em;
+      }
+      paper-button span {
+        margin-left: 8px;
+      }
+      paper-button[toggles][active] {
+        background: var(--paper-green-600);
+      }
+      .container {
+        max-width: 512px;
+        margin: 0px auto;
+        padding: 40px;
+      }
+      .margin {
+        margin-top: 32px;
+      }
+      .btns {
+        margin-top: 40px;
+      }
     </style>
+
+    <div class="container bg-white center-text">
+      <div class="layout horizontal center-justified">
+          <paper-button raised toggles active="{{scannerActive}}">
+            <iron-icon icon="image:photo-camera"></iron-icon>
+            <span>scan</span>
+          </paper-button>
+      </div>
+      <div class="layout vertical">
+        <granite-qrcode-scanner class="margin" data="{{scannedQr}}" active="{{scannerActive}}" continuous>
+        </granite-qrcode-scanner>
+        <span class="margin large-text">OR</span>
+      </div>
+      <paper-input
+        label="Enter an address"
+        value="{{address}}"
+        auto-validate="false"
+        error-message="{{inputErrorMessage}}"
+        invalid="{{isInputInvalid}}">
+      </paper-input>
+      <paper-input
+        class="margin"
+        always-float-label
+        label="Custom name"
+        placeholder="[[address]]"
+        value="{{addressName}}">
+      </paper-input>
+      <div class="btns layout horizontal center-justified">
+        <paper-button raised on-click="_addAddress">
+          <iron-icon icon="icons:add"></iron-icon>
+          <span>add</span>
+        </paper-button>
+      </div>
+    </div>
+
+    <app-toasts id="toast" intense></app-toasts>
   </template>
 
   <script>
     class AddAddressPage extends Polymer.Element {
       static get is() { return 'add-address-page' }
+
+      static get properties() {
+        return {
+          address: String,
+          addressName: String,
+          inputErrorMessage: String,
+          isInputInvalid: {
+            type: Boolean,
+            value: false,
+          },
+          isNarrow: Boolean,
+          route: {
+            type: Object,
+            notify: true,
+          },
+          scannedQr: {
+            type: String,
+            observer: '_scannedQrCode',
+          },
+          scannerActive: {
+            type: Boolean,
+            reflectToAttribute: true,
+          },
+          shouldUpdate: {
+            type: Boolean,
+            notify: true,
+          },
+          storedAddresses: {
+            type: Array,
+            notify: true,
+          },
+        }
+      }
+
+      _scannedQrCode(data) {
+        if (data) {
+          this.address = data
+          this.scannerActive = false
+        }
+      }
+
+      _addAddress() {
+        if (this.storedAddresses.find((address) => address === this.address)) {
+          this.inputErrorMessage = 'The address is already saved'
+          this.isInputInvalid = true
+        } else if (!bitcoin.isValidBitcoinAddress(this.address)) {
+          this.inputErrorMessage = 'Not a valid address'
+          this.isInputInvalid = true
+        } else {
+          this.push('storedAddresses', this.address)
+          this.shouldUpdate = true
+          this.address = ''
+          this.addressName = ''
+          this.showSuccessToast()
+        }
+      }
+
+      showSuccessToast() {
+        const properties = {
+          fitBottom: this.isNarrow,
+        }
+        this.$.toast.showSuccessToast('The address was successfully added!', properties)
+      }
     }
 
 window.customElements.define(AddAddressPage.is, AddAddressPage)

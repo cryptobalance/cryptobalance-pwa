@@ -38,9 +38,6 @@
       footer span {
         margin-left: 5px;
       }
-      .full-height {
-        height: 100%;
-      }
       .toolbar .amounts {
         text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.14);
       }
@@ -48,7 +45,7 @@
 
     <preferences-data btc-format="{{btcFormat}}"></preferences-data>
 
-    <div class="full-height layout horizontal">
+    <div class="layout horizontal">
       <!-- Always visible navigation for non narrow screens -->
       <dom-if if="[[!isNarrow]]">
         <template>
@@ -59,7 +56,9 @@
       <!-- Main content -->
       <div class="flex">
         <div class="toolbar bg-white center-text primary-text layout horizontal around-justified center">
-          <paper-icon-button icon="[[_getAddIcon(addSpaceOpened)]]" class="big-icon" on-click="toggleAddSpace"></paper-icon-button>
+          <a href="[[rootPath]]add-address">
+            <paper-button raised>add address</paper-button>
+          </a>
           <div class="amounts">
             <span class="large-text">[[_formatBalance(btcFormat, storedAddresses, addressData)]]</span>
             <br>
@@ -71,19 +70,6 @@
             <span>[[_formatUpdatedTime(updatedAt)]]</span>
           </div>
         </div>
-        <iron-collapse opened="[[addSpaceOpened]]">
-          <div class="container primary-text layout horizontal">
-            <paper-input
-              class="flex"
-              value="{{addressInput}}"
-              label="Enter a Bitcoin address"
-              auto-validate="false"
-              error-message="{{inputErrorMessage}}"
-              invalid="{{inputInvalid}}">
-            </paper-input>
-            <paper-button raised class="self-center" on-click="addAddress">add</paper-button>
-          </div>
-        </iron-collapse>
 
         <div class="list" tabindex="0">
           <template is="dom-repeat" items="{{storedAddresses}}">
@@ -113,28 +99,24 @@
       static get properties() {
         return {
           addressData: Object,
-          addressInput: String,
           addressUrl: String,
-          addSpaceOpened: {
-            type: Boolean,
-            value: false,
-          },
-          inputInvalid: {
-            type: Boolean,
-            value: false,
-          },
-          inputErrorMessage: String,
-          isDrawerOpen: Boolean,
           isNarrow: Boolean,
           priceData: Object,
+          shouldUpdate: {
+            type: Boolean,
+            value: false,
+            notify: true,
+            observer: '_shouldUpdate',
+          },
           storedAddresses: {
             type: Array,
             value: () => [],
+            notify: true,
           },
           updatedAt: {
             type: Date,
             value: null,
-          }
+          },
         }
       }
 
@@ -159,30 +141,11 @@
           })
       }
 
-      toggleAddSpace() {
-        this.addSpaceOpened = !this.addSpaceOpened
-      }
-
-      _getAddIcon(addSpaceOpened) {
-        return addSpaceOpened ? 'close' : 'add'
-      }
-
-      addAddress() {
-        if (this.addressExists(this.addressInput)) {
-          this.inputErrorMessage = 'The address is already saved'
-          this.inputInvalid = true
-        } else if (!bitcoin.isValidBitcoinAddress(this.addressInput)) {
-          this.inputErrorMessage = 'Not a valid address'
-          this.inputInvalid = true
-        } else {
-          this.push('storedAddresses', this.addressInput)
+      _shouldUpdate(newValue) {
+        if (newValue === true) {
           this.updateAll()
-          this.addressInput = ''
+          this.shouldUpdate = false
         }
-      }
-
-      addressExists(a) {
-        return this.storedAddresses.find((address) => address === a)
       }
 
       deleteAddress(e) {

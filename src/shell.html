@@ -14,9 +14,9 @@
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
 <link rel="import" href="wallet-navigator.html">
-<link rel="lazy-import" href="preferences.html">
-<link rel="lazy-import" href="balances.html">
-<link rel="lazy-import" href="not-found.html">
+<link rel="lazy-import" href="preferences-page.html">
+<link rel="lazy-import" href="address-page.html">
+<link rel="lazy-import" href="not-found-page.html">
 <link rel="lazy-import" href="add-address-page.html">
 
 <dom-module id="x-shell">
@@ -111,9 +111,20 @@
       </app-header>
 
       <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="not-found" role="main">
-        <address-page name="address" is-narrow="[[isNarrow]]" is-drawer-open="{{isDrawerOpen}}"></address-page>
+        <address-page
+          name="address"
+          is-narrow="[[isNarrow]]"
+          stored-addresses="{{storedAddresses}}"
+          should-update="{{shouldUpdate}}">
+        </address-page>
         <preferences-page name="preferences"></preferences-page>
-        <add-address-page name="add-address"></add-address-page>
+        <add-address-page
+          name="add-address"
+          is-narrow="[[isNarrow]]"
+          stored-addresses="{{storedAddresses}}"
+          should-update="{{shouldUpdate}}"
+          route="{{subroute}}">
+        </add-address-page>
         <not-found-page name="not-found"></not-found-page>
       </iron-pages>
     </app-header-layout>
@@ -139,7 +150,7 @@
             observer: '_pageChanged',
           },
           routeData: Object,
-          subroute: String,
+          subroute: Object,
           // This shouldn't be neccessary, but the Analyzer isn't picking up
           // Polymer.Element#rootPath
           rootPath: String,
@@ -168,7 +179,8 @@
           resolvedPageUrl,
           null,
           this._showPage404.bind(this),
-          true)
+          true
+        )
       }
 
       _showPage404() {
