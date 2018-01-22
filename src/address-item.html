@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
@@ -63,7 +64,7 @@
               <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
             </a>
             <paper-icon-button icon="create" class="green" on-click="TODO"></paper-icon-button>
-            <paper-icon-button icon="delete" class="red" on-click="TODO"></paper-icon-button>
+            <paper-icon-button id="deleteButton" icon="delete" class="red" on-click="_openDeleteDialog"></paper-icon-button>
           </div>
           <div class="layout horizontal wrap center-justified">
             <granite-qrcode-generator
@@ -97,6 +98,18 @@
         </div>
       </iron-collapse>
     </div>
+
+    <paper-dialog
+      id="deleteDialog"
+      no-overlap="[[!isNarrow]]"
+      horizontal-align="[[_horizontalAlign(isNarrow)]]"
+      vertical-align="[[_verticalAlign(isNarrow)]]">
+      <h2>Delete address?</h2>
+      <div>
+        <paper-button raised dialog-dismiss>Cancel</paper-button>
+        <paper-button raised dialog-confirm on-click="_delete">Confirm</paper-button>
+      </div>
+    </paper-dialog>
   </template>
 
   <script>
@@ -117,6 +130,27 @@
           },
           priceData: Object,
         }
+      }
+
+      _horizontalAlign(isNarrow) {
+        return isNarrow ? '' : 'center'
+      }
+
+      _verticalAlign(isNarrow) {
+        return isNarrow ? '' : 'top'
+      }
+
+      _openDeleteDialog() {
+        if (this.isNarrow) {
+          this.$.deleteDialog.positionTarget = null
+        } else {
+          this.$.deleteDialog.positionTarget = this.$.deleteButton
+        }
+        this.$.deleteDialog.open()
+      }
+
+      _delete() {
+        this.dispatchEvent(new CustomEvent('delete', {detail: {address: this.address}}))
       }
 
       _formatBalance(btcFormat, addressData) {

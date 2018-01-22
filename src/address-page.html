@@ -73,7 +73,13 @@
 
         <div class="list" tabindex="0">
           <template is="dom-repeat" items="{{storedAddresses}}">
-            <address-item address="[[item]]" address-data="[[addressData]]" price-data="[[priceData]]" is-narrow="[[isNarrow]]"></address-item>
+            <address-item
+              address="[[item]]"
+              address-data="[[addressData]]"
+              price-data="[[priceData]]"
+              is-narrow="[[isNarrow]]"
+              on-delete="_deleteAddress">
+            </address-item>
           </template>
         </div>
       </div>
@@ -148,8 +154,11 @@
         }
       }
 
-      deleteAddress(e) {
-        this.splice('storedAddresses', e.model.get('itemsIndex'), 1)
+      _deleteAddress(e) {
+        const index = this.storedAddresses.indexOf(e.detail.address)
+        if (index > -1) {
+          this.splice('storedAddresses', index, 1)
+        }
       }
 
       updateAll() {
