@@ -6,10 +6,10 @@
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="../bower_components/granite-qrcode-generator/granite-qrcode-generator.html">
 
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="preferences-data.html">
+<link rel="import" href="address-item-details.html">
 
 <dom-module id="address-item">
   <template>
@@ -29,19 +29,6 @@
       .list-item {
         background-color: white;
       }
-      .collapsed {
-        max-width: 600px;
-      }
-      .collapsed .info {
-        padding-top: 4px;
-      }
-      .collapsed .label {
-        width: 50%;
-      }
-      .collapsed .value {
-        width: 50%;
-        text-align: right;
-      }
     </style>
 
     <preferences-data btc-format="{{btcFormat}}"></preferences-data>
@@ -58,44 +45,13 @@
         <paper-icon-button icon="[[_getArrowIcon(isDetailsOpen)]]"></paper-icon-button>
       </paper-item>
       <iron-collapse opened="[[isDetailsOpen]]">
-        <div class="collapsed">
-          <div class="layout horizontal around-justified">
-            <a href$="https://live.blockcypher.com/btc/address/[[address]]" target="_blank">
-              <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
-            </a>
-            <paper-icon-button icon="create" class="green" on-click="TODO"></paper-icon-button>
-            <paper-icon-button id="deleteButton" icon="delete" class="red" on-click="_openDeleteDialog"></paper-icon-button>
-          </div>
-          <div class="layout horizontal wrap center-justified">
-            <granite-qrcode-generator
-              class="container qr"
-              data="[[address]]"
-              mode="octet"
-              margin="0"
-              modulesize="4"
-              auto>
-            </granite-qrcode-generator>
-            <div class="container layout vertical justified flex">
-              <span class="medium-text">[[address]]</span>
-              <div class="info small-text layout horizontal">
-                <span class="label">No. transactions</span>
-                <span class="value">[[_getTransactionCount(addressData)]]</span>
-              </div>
-              <div class="info small-text layout horizontal">
-                <span class="label">Received amount</span>
-                <span class="value">[[_getReceivedAmount(addressData, btcFormat)]]</span>
-              </div>
-              <div class="info small-text layout horizontal">
-                <span class="label">Sent amount</span>
-                <span class="value">[[_getSentAmount(addressData, btcFormat)]]</span>
-              </div>
-              <div class="info small-text layout horizontal">
-                <span class="label">Unconfirmed balance</span>
-                <span class="value">[[_getUnconfirmedBalance(addressData, btcFormat)]]</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <address-item-details
+          address=[[address]]
+          address-data=[[addressData]]
+          btc-format="[[btcFormat]]"
+          is-narrow=[[isNarrow]]
+          on-open-delete-dialog="_openDeleteDialog">
+        </address-item-details>
       </iron-collapse>
     </div>
 
@@ -140,11 +96,11 @@
         return isNarrow ? '' : 'top'
       }
 
-      _openDeleteDialog() {
+      _openDeleteDialog(e) {
         if (this.isNarrow) {
           this.$.deleteDialog.positionTarget = null
         } else {
-          this.$.deleteDialog.positionTarget = this.$.deleteButton
+          this.$.deleteDialog.positionTarget = e.detail.deleteButton
         }
         this.$.deleteDialog.open()
       }
@@ -174,28 +130,6 @@
 
       _toggleDetails() {
         this.isDetailsOpen = !this.isDetailsOpen
-      }
-
-      _getTransactionCount(addressData) {
-        return addressData && addressData[this.address] ? addressData[this.address].n_tx : '-'
-      }
-
-      _getReceivedAmount(addressData, btcFormat) {
-        return addressData && addressData[this.address] && btcFormat
-          ? this.formatAmount({btcFormat, amount: addressData[this.address].total_received})
-          : '-'
-      }
-
-      _getSentAmount(addressData, btcFormat) {
-        return addressData && addressData[this.address] && btcFormat
-          ? this.formatAmount({btcFormat, amount: addressData[this.address].total_sent})
-          : '-'
-      }
-
-      _getUnconfirmedBalance(addressData, btcFormat) {
-        return addressData && addressData[this.address] && btcFormat
-          ? this.formatAmount({btcFormat, amount: addressData[this.address].unconfirmed_balance})
-          : '-'
       }
 
       formatAmount({btcFormat, amount}) {

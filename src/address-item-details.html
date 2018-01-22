@@ -1,0 +1,114 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/granite-qrcode-generator/granite-qrcode-generator.html">
+
+<dom-module id="address-item-details" attributes="address">
+  <template>
+    <style include="shared-styles iron-flex iron-flex-alignment">
+      .details {
+        max-width: 600px;
+      }
+      .details .info {
+        padding-top: 4px;
+      }
+      .details .label {
+        width: 50%;
+      }
+      .details .value {
+        width: 50%;
+        text-align: right;
+      }
+    </style>
+
+    <div class="details">
+      <div class="layout horizontal around-justified">
+        <a href$="https://live.blockcypher.com/btc/address/[[address]]" target="_blank">
+          <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
+        </a>
+        <paper-icon-button icon="create" class="green" on-click="TODO"></paper-icon-button>
+        <paper-icon-button id="deleteButton" icon="delete" class="red" on-click="_openDeleteDialog"></paper-icon-button>
+      </div>
+      <div class="layout horizontal wrap center-justified">
+        <granite-qrcode-generator
+          class="container qr"
+          data="[[address]]"
+          mode="octet"
+          margin="0"
+          modulesize="4"
+          auto>
+        </granite-qrcode-generator>
+        <div class="container layout vertical justified flex">
+          <span class="medium-text">[[address]]</span>
+          <div class="info small-text layout horizontal">
+            <span class="label">No. transactions</span>
+            <span class="value">[[_getTransactionCount(addressData)]]</span>
+          </div>
+          <div class="info small-text layout horizontal">
+            <span class="label">Received amount</span>
+            <span class="value">[[_getReceivedAmount(addressData, btcFormat)]]</span>
+          </div>
+          <div class="info small-text layout horizontal">
+            <span class="label">Sent amount</span>
+            <span class="value">[[_getSentAmount(addressData, btcFormat)]]</span>
+          </div>
+          <div class="info small-text layout horizontal">
+            <span class="label">Unconfirmed balance</span>
+            <span class="value">[[_getUnconfirmedBalance(addressData, btcFormat)]]</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class AddressItemDetails extends Polymer.Element {
+      static get is() { return 'address-item-details' }
+
+      static get properties() {
+        return {
+          address: String,
+          addressData: Object,
+          btcFormat: Object,
+          isNarrow: Boolean,
+        }
+      }
+
+      _openDeleteDialog() {
+        const deleteButton = this.$.deleteButton
+        this.dispatchEvent(new CustomEvent('open-delete-dialog', {detail: {deleteButton}}))
+      }
+
+      _getTransactionCount(addressData) {
+        return addressData && addressData[this.address] ? addressData[this.address].n_tx : '-'
+      }
+
+      _getReceivedAmount(addressData, btcFormat) {
+        return addressData && addressData[this.address] && btcFormat
+          ? this.formatAmount({btcFormat, amount: addressData[this.address].total_received})
+          : '-'
+      }
+
+      _getSentAmount(addressData, btcFormat) {
+        return addressData && addressData[this.address] && btcFormat
+          ? this.formatAmount({btcFormat, amount: addressData[this.address].total_sent})
+          : '-'
+      }
+
+      _getUnconfirmedBalance(addressData, btcFormat) {
+        return addressData && addressData[this.address] && btcFormat
+          ? this.formatAmount({btcFormat, amount: addressData[this.address].unconfirmed_balance})
+          : '-'
+      }
+
+      formatAmount({btcFormat, amount}) {
+        const {divideBy, decimalCount} = btcFormat
+
+        const fixedBalance = (amount / divideBy).toFixed(decimalCount)
+        return fixedBalance + ' ' + btcFormat.name
+      }
+    }
+
+window.customElements.define(AddressItemDetails.is, AddressItemDetails)
+  </script>
+</dom-module>
