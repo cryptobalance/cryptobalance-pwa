@@ -18,7 +18,7 @@
         <a href$="https://live.blockcypher.com/btc/address/[[address.id]]" target="_blank">
           <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
         </a>
-        <paper-icon-button icon="create" class="green" on-click="TODO"></paper-icon-button>
+        <paper-icon-button icon="create" class="green" on-click="_editAddress"></paper-icon-button>
         <paper-icon-button id="deleteButton" icon="delete" class="red" on-click="_openDeleteDialog"></paper-icon-button>
       </div>
       <div class="layout horizontal wrap center-justified">
@@ -63,6 +63,10 @@
           addressData: Object,
           btcFormat: Object,
         }
+      }
+
+      _editAddress() {
+        this.dispatchEvent(new CustomEvent('edit'))
       }
 
       _openDeleteDialog() {

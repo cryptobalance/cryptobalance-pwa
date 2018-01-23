@@ -3,6 +3,8 @@
 <link rel="import" href="../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
@@ -21,7 +23,17 @@
       :host([is-narrow]) .list-item {
         border-top: 1px solid var(--paper-grey-400);
       }
+      :host([is-editing]) #addressName {
+        display: none;
+      }
+      :host(:not([is-editing])) #addressNameEdit {
+        display: none;
+      }
+      #addressNameEdit {
+        max-width: 580px;
+      }
       paper-item {
+        cursor: pointer;
         --paper-item-focused-before: {
           background-color: white;
         }
@@ -36,20 +48,32 @@
     <div class="list-item">
       <paper-item on-click="_toggleDetails">
         <paper-item-body two-line>
-          <div>[[address.name]]</div>
+          <div id="addressName">[[address.name]]</div>
+          <paper-input
+            id="addressNameEdit"
+            value="{{nameInput}}"
+            label="New name"
+            placeholder="[[address.name]]"
+            always-float-label>
+            <div slot="suffix">
+              <paper-icon-button class="green" icon="check" on-click="_changeName"></paper-icon-button>
+              <paper-icon-button class="red" icon="clear" on-click="_stopEditing"></paper-icon-button>
+            </div>
+          </paper-input>
           <div secondary class="primary-text">
             <span class="bold medium-text">[[_formatBalance(btcFormat, addressData)]]</span>
             <span>([[_formatPrice(priceData, addressData)]])</span>
           </div>
         </paper-item-body>
-        <paper-icon-button icon="[[_getArrowIcon(isDetailsOpen)]]"></paper-icon-button>
+        <iron-icon icon="[[_getArrowIcon(isDetailsOpen)]]"></iron-icon>
       </paper-item>
       <iron-collapse opened="[[isDetailsOpen]]">
         <address-item-details
           address=[[address]]
           address-data=[[addressData]]
           btc-format="[[btcFormat]]"
-          on-open-delete-dialog="_openDeleteDialog">
+          on-open-delete-dialog="_openDeleteDialog"
+          on-edit="_toggleEditMode">
         </address-item-details>
       </iron-collapse>
     </div>
@@ -73,18 +97,45 @@
 
       static get properties() {
         return {
-          address: Object,
+          address: {
+            type: Object,
+            notify: true,
+          },
           addressData: Object,
           isDetailsOpen: {
             type: Boolean,
             value: false,
           },
+          isEditing: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true,
+          },
           isNarrow: {
             type: Boolean,
             reflectToAttribute: true,
           },
+          nameInput: String,
           priceData: Object,
         }
+      }
+
+      _toggleEditMode() {
+        this.isEditing = !this.isEditing
+        if (this.isEditing) {
+          this.$.addressNameEdit.focus()
+        }
+      }
+
+      _changeName(e) {
+        this.set('address.name', this.nameInput)
+        this._stopEditing(e)
+      }
+
+      _stopEditing(e) {
+        e.stopPropagation()
+        this.isEditing = false
+        this.nameInput = ''
       }
 
       _horizontalAlign(isNarrow) {
@@ -128,7 +179,9 @@
       }
 
       _toggleDetails() {
-        this.isDetailsOpen = !this.isDetailsOpen
+        if (!this.isEditing) {
+          this.isDetailsOpen = !this.isDetailsOpen
+        }
       }
     }
 
