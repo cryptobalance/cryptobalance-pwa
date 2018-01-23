@@ -113,18 +113,19 @@
       }
 
       _addAddress() {
-        if (this.storedAddresses.find((address) => address.id === this.address)) {
+        const newAddress = this.address.trim()
+        if (this.storedAddresses.find((address) => address.id === newAddress)) {
           this.inputErrorMessage = 'The address is already saved'
           this.isInputInvalid = true
-        } else if (!bitcoin.isValidBitcoinAddress(this.address)) {
+        } else if (!bitcoin.isValidBitcoinAddress(newAddress)) {
           this.inputErrorMessage = 'Not a valid address'
           this.isInputInvalid = true
         } else {
-          const newAddress = {
-            id: this.address,
-            name: this.addressName || this.address,
+          const toSave = {
+            id: newAddress,
+            name: this.addressName ? this.addressName.trim() : newAddress,
           }
-          this.push('storedAddresses', newAddress)
+          this.push('storedAddresses', toSave)
           this.shouldUpdate = true
           this.address = ''
           this.addressName = ''

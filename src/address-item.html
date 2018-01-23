@@ -54,6 +54,7 @@
             value="{{nameInput}}"
             label="New name"
             placeholder="[[address.name]]"
+            on-keydown="_nameInputKeyDown"
             always-float-label>
             <div slot="suffix">
               <paper-icon-button class="green" icon="check" on-click="_changeName"></paper-icon-button>
@@ -120,6 +121,12 @@
         }
       }
 
+      _nameInputKeyDown(e) {
+        if (e.keyCode === 13) {
+          this._changeName(e)
+        }
+      }
+
       _toggleEditMode() {
         this.isEditing = !this.isEditing
         if (this.isEditing) {
@@ -128,8 +135,11 @@
       }
 
       _changeName(e) {
-        this.set('address.name', this.nameInput)
-        this._stopEditing(e)
+        const newName = this.nameInput.trim()
+        if (newName) {
+          this.set('address.name', newName)
+          this._stopEditing(e)
+        }
       }
 
       _stopEditing(e) {
