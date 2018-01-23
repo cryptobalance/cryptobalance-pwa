@@ -211,7 +211,7 @@
       getBalance(addresses, addressData) {
         return [].concat(addresses)
           .reduce((amount, address) => {
-            amount += addressData[address] ? addressData[address].balance : 0
+            amount += addressData[address.id] ? addressData[address.id].balance : 0
             return amount
           }, 0)
       }
