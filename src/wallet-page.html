@@ -60,9 +60,9 @@
             <paper-button raised>add address</paper-button>
           </a>
           <div class="primary-text amounts">
-            <span class="large-text">[[_formatBalance(btcFormat, storedAddresses, addressData)]]</span>
+            <span class="large-text">[[_formatBalance(btcFormat, storedAddresses.*, addressData)]]</span>
             <br>
-            <span class="medium-text">[[_formatPrice(priceData, storedAddresses, addressData)]]</span>
+            <span class="medium-text">[[_formatPrice(priceData, storedAddresses.*, addressData)]]</span>
           </div>
           <div class="small-text">
             <span>Last update</span>
@@ -217,19 +217,19 @@
           }, 0)
       }
 
-      _formatBalance(btcFormat, addresses, addressData) {
-        if (!(btcFormat && addresses && addressData)) {
+      _formatBalance(btcFormat, addressChange, addressData) {
+        if (!(btcFormat && addressChange && addressData)) {
           return '- ' + (btcFormat ? btcFormat.name : 'BTC')
         }
-        const amount = this.getBalance(addresses, addressData)
+        const amount = this.getBalance(addressChange.base, addressData)
         return utils.formatBtc({btcFormat, amount})
       }
 
-      _formatPrice(priceData, addresses, addressData) {
-        if (!(priceData && addresses && addressData)) {
+      _formatPrice(priceData, addressChange, addressData) {
+        if (!(priceData && addressChange && addressData)) {
           return '- USD'
         }
-        const amount = this.getBalance(addresses, addressData) / 100000000 * priceData.USD
+        const amount = this.getBalance(addressChange.base, addressData) / 100000000 * priceData.USD
         return utils.formatFiat({amount})
       }
     }
