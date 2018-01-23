@@ -1,0 +1,38 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="address-item-details-field" attributes="address">
+  <template>
+    <style include="shared-styles iron-flex">
+      .info {
+        padding-top: 4px;
+      }
+      .label {
+        width: 50%;
+      }
+      .value {
+        width: 50%;
+        text-align: right;
+      }
+    </style>
+
+    <div class="info small-text layout horizontal">
+      <span class="label">[[label]]</span>
+      <span class="value">[[value]]</span>
+    </div>
+  </template>
+
+  <script>
+    class AddressItemDetailsField extends Polymer.Element {
+      static get is() { return 'address-item-details-field' }
+
+      static get properties() {
+        return {
+          label: String,
+          value: String,
+        }
+      }
+    }
+
+window.customElements.define(AddressItemDetailsField.is, AddressItemDetailsField)
+  </script>
+</dom-module>

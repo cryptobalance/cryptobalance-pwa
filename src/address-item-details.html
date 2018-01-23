@@ -3,21 +3,13 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/granite-qrcode-generator/granite-qrcode-generator.html">
 
+<link rel="import" href="address-item-details-field.html">
+
 <dom-module id="address-item-details" attributes="address">
   <template>
     <style include="shared-styles iron-flex iron-flex-alignment">
       .details {
         max-width: 600px;
-      }
-      .details .info {
-        padding-top: 4px;
-      }
-      .details .label {
-        width: 50%;
-      }
-      .details .value {
-        width: 50%;
-        text-align: right;
       }
     </style>
 
@@ -40,22 +32,22 @@
         </granite-qrcode-generator>
         <div class="container layout vertical justified flex">
           <span class="medium-text">[[address]]</span>
-          <div class="info small-text layout horizontal">
-            <span class="label">No. transactions</span>
-            <span class="value">[[_getTransactionCount(addressData)]]</span>
-          </div>
-          <div class="info small-text layout horizontal">
-            <span class="label">Received amount</span>
-            <span class="value">[[_getReceivedAmount(addressData, btcFormat)]]</span>
-          </div>
-          <div class="info small-text layout horizontal">
-            <span class="label">Sent amount</span>
-            <span class="value">[[_getSentAmount(addressData, btcFormat)]]</span>
-          </div>
-          <div class="info small-text layout horizontal">
-            <span class="label">Unconfirmed balance</span>
-            <span class="value">[[_getUnconfirmedBalance(addressData, btcFormat)]]</span>
-          </div>
+          <address-item-details-field
+            label="No. transactions"
+            value="[[_getTransactionCount(addressData)]]">
+          </address-item-details-field>
+          <address-item-details-field
+            label="Received amount"
+            value="[[_getReceivedAmount(addressData, btcFormat)]]">
+          </address-item-details-field>
+          <address-item-details-field
+            label="Sent amount"
+            value="[[_getSentAmount(addressData, btcFormat)]]">
+          </address-item-details-field>
+          <address-item-details-field
+            label="Unconfirmed balance"
+            value="[[_getUnconfirmedBalance(addressData, btcFormat)]]">
+          </address-item-details-field>
         </div>
       </div>
     </div>
@@ -70,7 +62,6 @@
           address: String,
           addressData: Object,
           btcFormat: Object,
-          isNarrow: Boolean,
         }
       }
 
