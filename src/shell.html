@@ -15,11 +15,11 @@
 
 <link rel="import" href="wallet-navigator.html">
 <link rel="lazy-import" href="preferences-page.html">
-<link rel="lazy-import" href="address-page.html">
+<link rel="lazy-import" href="wallet-page.html">
 <link rel="lazy-import" href="not-found-page.html">
 <link rel="lazy-import" href="add-address-page.html">
 
-<dom-module id="x-shell">
+<dom-module id="app-shell">
   <template>
     <style include="iron-flex">
       :host {
@@ -29,11 +29,11 @@
         display: block;
       }
 
-      :host(:not([page=address])) .toolbar-btn {
+      :host(:not([page=wallet])) .toolbar-btn {
         display: none;
       }
 
-      :host([page=address]) .back-btn {
+      :host([page=wallet]) .back-btn {
         display: none;
       }
 
@@ -96,7 +96,7 @@
     <app-header-layout fullbleed>
       <app-header slot="header" condenses reveals effects="waterfall">
         <app-toolbar>
-          <a href="[[rootPath]]address" class="back-btn">
+          <a href="[[rootPath]]wallet" class="back-btn">
             <paper-icon-button icon="arrow-back"></paper-icon-button>
           </a>
           <paper-icon-button class="toolbar-btn drawer-btn" icon="menu" on-click="_toggleDrawer"></paper-icon-button>
@@ -111,12 +111,12 @@
       </app-header>
 
       <iron-pages selected="[[page]]" attr-for-selected="name" fallback-selection="not-found" role="main">
-        <address-page
-          name="address"
+        <wallet-page
+          name="wallet"
           is-narrow="[[isNarrow]]"
           stored-addresses="{{storedAddresses}}"
           should-update="{{shouldUpdate}}">
-        </address-page>
+        </wallet-page>
         <preferences-page name="preferences"></preferences-page>
         <add-address-page
           name="add-address"
@@ -132,7 +132,7 @@
 
   <script>
     class Shell extends Polymer.Element {
-      static get is() { return 'x-shell' }
+      static get is() { return 'app-shell' }
 
       static get properties() {
         return {
@@ -165,8 +165,8 @@
 
       _routePageChanged(page) {
         // If no page was found in the route data, page will be an empty string.
-        // Default to 'balances' in that case.
-        this.page = page || 'address'
+        // Default to 'wallet' in that case.
+        this.page = page || 'wallet'
 
         // Close the drawer when the page & route are changed.
         this.isDrawerOpen = false

@@ -19,7 +19,7 @@
 <script src="../bower_components/moment/min/moment.min.js"></script>
 <script src="../browserify-libs.js"></script>
 
-<dom-module id="address-page">
+<dom-module id="wallet-page">
   <template>
     <style include="shared-styles iron-flex iron-flex-alignment">
       paper-icon-button {
@@ -99,8 +99,8 @@
   </template>
 
   <script>
-    class AddressPage extends Polymer.Element {
-      static get is() { return 'address-page' }
+    class WalletPage extends Polymer.Element {
+      static get is() { return 'wallet-page' }
 
       static get properties() {
         return {
@@ -234,6 +234,6 @@
       }
     }
 
-window.customElements.define(AddressPage.is, AddressPage)
+window.customElements.define(WalletPage.is, WalletPage)
   </script>
 </dom-module>
