@@ -113,15 +113,15 @@
         if (!(btcFormat && addressData && addressData[this.address])) {
           return '- ' + (btcFormat ? btcFormat.name : 'BTC')
         }
-        return this.formatAmount({btcFormat, amount: addressData[this.address].balance})
+        return utils.formatBtc({btcFormat, amount: addressData[this.address].balance})
       }
 
       _formatPrice(priceData, addressData) {
         if (!(priceData && addressData && addressData[this.address])) {
           return '- USD'
         }
-        const amount = addressData[this.address].balance / 100000000
-        return (amount * priceData.USD).toFixed(2) + ' USD'
+        const amount = addressData[this.address].balance / 100000000 * priceData.USD
+        return utils.formatFiat({amount})
       }
 
       _getArrowIcon() {
@@ -130,13 +130,6 @@
 
       _toggleDetails() {
         this.isDetailsOpen = !this.isDetailsOpen
-      }
-
-      formatAmount({btcFormat, amount}) {
-        const {divideBy, decimalCount} = btcFormat
-
-        const fixedBalance = (amount / divideBy).toFixed(decimalCount)
-        return fixedBalance + ' ' + btcFormat.name
       }
     }
 

@@ -217,27 +217,20 @@
           }, 0)
       }
 
-      formatAmount(btcFormat, amount) {
-        const {divideBy, decimalCount} = btcFormat
-
-        const fixedBalance = (amount / divideBy).toFixed(decimalCount)
-        return fixedBalance + ' ' + btcFormat.name
-      }
-
       _formatBalance(btcFormat, addresses, addressData) {
         if (!(btcFormat && addresses && addressData)) {
           return '- ' + (btcFormat ? btcFormat.name : 'BTC')
         }
-        const balance = this.getBalance(addresses, addressData)
-        return this.formatAmount(btcFormat, balance)
+        const amount = this.getBalance(addresses, addressData)
+        return utils.formatBtc({btcFormat, amount})
       }
 
       _formatPrice(priceData, addresses, addressData) {
         if (!(priceData && addresses && addressData)) {
           return '- USD'
         }
-        const amount = this.getBalance(addresses, addressData) / 100000000
-        return (amount * priceData.USD).toFixed(2) + ' USD'
+        const amount = this.getBalance(addresses, addressData) / 100000000 * priceData.USD
+        return utils.formatFiat({amount})
       }
     }
 

@@ -85,27 +85,20 @@
 
       _getReceivedAmount(addressData, btcFormat) {
         return addressData && addressData[this.address] && btcFormat
-          ? this.formatAmount({btcFormat, amount: addressData[this.address].total_received})
+          ? utils.formatBtc({btcFormat, amount: addressData[this.address].total_received})
           : '-'
       }
 
       _getSentAmount(addressData, btcFormat) {
         return addressData && addressData[this.address] && btcFormat
-          ? this.formatAmount({btcFormat, amount: addressData[this.address].total_sent})
+          ? utils.formatBtc({btcFormat, amount: addressData[this.address].total_sent})
           : '-'
       }
 
       _getUnconfirmedBalance(addressData, btcFormat) {
         return addressData && addressData[this.address] && btcFormat
-          ? this.formatAmount({btcFormat, amount: addressData[this.address].unconfirmed_balance})
+          ? utils.formatBtc({btcFormat, amount: addressData[this.address].unconfirmed_balance})
           : '-'
-      }
-
-      formatAmount({btcFormat, amount}) {
-        const {divideBy, decimalCount} = btcFormat
-
-        const fixedBalance = (amount / divideBy).toFixed(decimalCount)
-        return fixedBalance + ' ' + btcFormat.name
       }
     }
 

@@ -21,6 +21,7 @@
     "Polymer": true,
     "Promise": true,
     "moment": true,
-    "bitcoin": true
+    "bitcoin": true,
+    "utils": true
   }
 }

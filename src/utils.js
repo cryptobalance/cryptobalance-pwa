@@ -1,0 +1,13 @@
+
+const utils = {
+  formatBtc: ({btcFormat, amount}) => {
+    const {divideBy, decimalCount} = btcFormat
+
+    const fixedBalance = (amount / divideBy).toFixed(decimalCount)
+    return fixedBalance + ' ' + btcFormat.name
+  },
+
+  formatFiat: ({amount}) => {
+    return amount.toFixed(2) + ' USD'
+  },
+}
