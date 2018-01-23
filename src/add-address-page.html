@@ -86,10 +86,6 @@
             value: false,
           },
           isNarrow: Boolean,
-          route: {
-            type: Object,
-            notify: true,
-          },
           scannedQr: {
             type: String,
             observer: '_scannedQrCode',
@@ -117,14 +113,18 @@
       }
 
       _addAddress() {
-        if (this.storedAddresses.find((address) => address === this.address)) {
+        if (this.storedAddresses.find((address) => address.id === this.address)) {
           this.inputErrorMessage = 'The address is already saved'
           this.isInputInvalid = true
         } else if (!bitcoin.isValidBitcoinAddress(this.address)) {
           this.inputErrorMessage = 'Not a valid address'
           this.isInputInvalid = true
         } else {
-          this.push('storedAddresses', this.address)
+          const newAddress = {
+            id: this.address,
+            name: this.addressName || this.address,
+          }
+          this.push('storedAddresses', newAddress)
           this.shouldUpdate = true
           this.address = ''
           this.addressName = ''

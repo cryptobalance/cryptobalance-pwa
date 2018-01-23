@@ -15,7 +15,7 @@
 
     <div class="details">
       <div class="layout horizontal around-justified">
-        <a href$="https://live.blockcypher.com/btc/address/[[address]]" target="_blank">
+        <a href$="https://live.blockcypher.com/btc/address/[[address.id]]" target="_blank">
           <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
         </a>
         <paper-icon-button icon="create" class="green" on-click="TODO"></paper-icon-button>
@@ -24,14 +24,14 @@
       <div class="layout horizontal wrap center-justified">
         <granite-qrcode-generator
           class="container qr"
-          data="[[address]]"
+          data="[[address.id]]"
           mode="octet"
           margin="0"
           modulesize="4"
           auto>
         </granite-qrcode-generator>
         <div class="container layout vertical justified flex">
-          <span class="medium-text">[[address]]</span>
+          <span class="medium-text">[[address.id]]</span>
           <address-item-details-field
             label="No. transactions"
             value="[[_getTransactionCount(addressData)]]">
@@ -59,7 +59,7 @@
 
       static get properties() {
         return {
-          address: String,
+          address: Object,
           addressData: Object,
           btcFormat: Object,
         }
@@ -71,24 +71,24 @@
       }
 
       _getTransactionCount(addressData) {
-        return addressData && addressData[this.address] ? addressData[this.address].n_tx : '-'
+        return addressData && addressData[this.address.id] ? addressData[this.address.id].n_tx : '-'
       }
 
       _getReceivedAmount(addressData, btcFormat) {
-        return addressData && addressData[this.address] && btcFormat
-          ? utils.formatBtc({btcFormat, amount: addressData[this.address].total_received})
+        return addressData && addressData[this.address.id] && btcFormat
+          ? utils.formatBtc({btcFormat, amount: addressData[this.address.id].total_received})
           : '-'
       }
 
       _getSentAmount(addressData, btcFormat) {
-        return addressData && addressData[this.address] && btcFormat
-          ? utils.formatBtc({btcFormat, amount: addressData[this.address].total_sent})
+        return addressData && addressData[this.address.id] && btcFormat
+          ? utils.formatBtc({btcFormat, amount: addressData[this.address.id].total_sent})
           : '-'
       }
 
       _getUnconfirmedBalance(addressData, btcFormat) {
-        return addressData && addressData[this.address] && btcFormat
-          ? utils.formatBtc({btcFormat, amount: addressData[this.address].unconfirmed_balance})
+        return addressData && addressData[this.address.id] && btcFormat
+          ? utils.formatBtc({btcFormat, amount: addressData[this.address.id].unconfirmed_balance})
           : '-'
       }
     }

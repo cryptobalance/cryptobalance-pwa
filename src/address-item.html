@@ -36,7 +36,7 @@
     <div class="list-item">
       <paper-item on-click="_toggleDetails">
         <paper-item-body two-line>
-          <div>[[address]]</div>
+          <div>[[address.name]]</div>
           <div secondary class="primary-text">
             <span class="bold medium-text">[[_formatBalance(btcFormat, addressData)]]</span>
             <span>([[_formatPrice(priceData, addressData)]])</span>
@@ -73,7 +73,7 @@
 
       static get properties() {
         return {
-          address: String,
+          address: Object,
           addressData: Object,
           isDetailsOpen: {
             type: Boolean,
@@ -105,21 +105,21 @@
       }
 
       _delete() {
-        this.dispatchEvent(new CustomEvent('delete', {detail: {address: this.address}}))
+        this.dispatchEvent(new CustomEvent('delete', {detail: {id: this.address.id}}))
       }
 
       _formatBalance(btcFormat, addressData) {
-        if (!(btcFormat && addressData && addressData[this.address])) {
+        if (!(btcFormat && addressData && addressData[this.address.id])) {
           return '- ' + (btcFormat ? btcFormat.name : 'BTC')
         }
-        return utils.formatBtc({btcFormat, amount: addressData[this.address].balance})
+        return utils.formatBtc({btcFormat, amount: addressData[this.address.id].balance})
       }
 
       _formatPrice(priceData, addressData) {
-        if (!(priceData && addressData && addressData[this.address])) {
+        if (!(priceData && addressData && addressData[this.address.id])) {
           return '- USD'
         }
-        const amount = addressData[this.address].balance / 100000000 * priceData.USD
+        const amount = addressData[this.address.id].balance / 100000000 * priceData.USD
         return utils.formatFiat({amount})
       }
 

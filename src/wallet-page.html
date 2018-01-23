@@ -90,7 +90,7 @@
       <span>[[priceData.USD]] USD</span>
     </footer>
 
-    <iron-ajax id="addressRequest" url="{{addressUrl}}"></iron-ajax>
+    <iron-ajax id="addressRequest"></iron-ajax>
     <iron-ajax id="priceRequest" url="https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD"></iron-ajax>
     <app-localstorage-document id="updatedAt" key="updatedAt" data="{{updatedAt}}"></app-localstorage-document>
     <app-localstorage-document id="addressData" key="addressData" data="{{addressData}}"></app-localstorage-document>
@@ -105,7 +105,6 @@
       static get properties() {
         return {
           addressData: Object,
-          addressUrl: String,
           isNarrow: Boolean,
           priceData: Object,
           shouldUpdate: {
@@ -155,7 +154,7 @@
       }
 
       _deleteAddress(e) {
-        const index = this.storedAddresses.indexOf(e.detail.address)
+        const index = this.storedAddresses.findIndex((address) => address.id === e.detail.id)
         if (index > -1) {
           this.splice('storedAddresses', index, 1)
         }
@@ -177,11 +176,11 @@
           return
         }
 
-        const addressParam = this.storedAddresses.join(';')
-        this.addressUrl = `https://api.blockcypher.com/v1/btc/main/addrs/${addressParam}/balance`
+        const addressRequest = this.$.addressRequest
+        const addressParam = this.storedAddresses.map((address) => address.id).join(';')
+        addressRequest.url = `https://api.blockcypher.com/v1/btc/main/addrs/${addressParam}/balance`
 
-        const request = this.$.addressRequest.generateRequest()
-        return request.completes.then((e) => {
+        return addressRequest.generateRequest().completes.then((e) => {
           this.addressData = [].concat(e.parseResponse())
             .reduce((acc, address) => {
               acc[address.address] = address
