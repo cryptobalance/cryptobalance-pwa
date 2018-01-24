@@ -80,6 +80,11 @@
               on-delete="_deleteAddress">
             </address-item>
           </template>
+          <dom-if if="[[!storedAddresses.length]]">
+            <template>
+              <h2 class="center-text">This group is empty.</h2>
+            </template>
+          </dom-if>
         </div>
       </div>
     </div>
