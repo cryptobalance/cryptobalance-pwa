@@ -23,5 +23,8 @@
     "test": "polymer test",
     "test:integration": "polymer build # test that psk builds without error with the CLI",
     "browserify": "browserify browserify-main.js --standalone bitcoin > browserify-libs.js"
+  },
+  "dependencies": {
+    "currencyformatter.js": "^2.0.0"
   }
 }

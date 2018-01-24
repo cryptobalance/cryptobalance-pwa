@@ -181,7 +181,7 @@
           return '- USD'
         }
         const amount = addressData[this.address.id].balance / 100000000 * priceData.USD
-        return utils.formatFiat({amount})
+        return OSREC.CurrencyFormatter.format(amount, {currency: 'USD'})
       }
 
       _getArrowIcon() {

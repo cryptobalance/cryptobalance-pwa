@@ -6,8 +6,4 @@ const utils = {
     const fixedBalance = (amount / divideBy).toFixed(decimalCount)
     return fixedBalance + ' ' + btcFormat.name
   },
-
-  formatFiat: ({amount}) => {
-    return amount.toFixed(2) + ' USD'
-  },
 }

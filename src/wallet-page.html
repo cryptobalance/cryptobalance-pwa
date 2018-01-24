@@ -87,7 +87,7 @@
 
     <footer>
       <iron-icon class="big-icon" src="https://www.cryptocompare.com/media/19633/btc.png"></iron-icon>
-      <span>[[priceData.USD]] USD</span>
+      <span>[[_formatCurrentPrice(priceData)]]</span>
     </footer>
 
     <iron-ajax id="addressRequest"></iron-ajax>
@@ -234,7 +234,14 @@
           return '- USD'
         }
         const amount = this.getBalance(addressChange.base, addressData) / 100000000 * priceData.USD
-        return utils.formatFiat({amount})
+        return OSREC.CurrencyFormatter.format(amount, {currency: 'USD'})
+      }
+
+      _formatCurrentPrice(priceData) {
+        if (!priceData) {
+          return ''
+        }
+        return OSREC.CurrencyFormatter.format(priceData.USD, {currency: 'USD'})
       }
     }
 

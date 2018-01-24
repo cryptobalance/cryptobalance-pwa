@@ -22,6 +22,7 @@
     "Promise": true,
     "moment": true,
     "bitcoin": true,
-    "utils": true
+    "utils": true,
+    "OSREC": true
   }
 }
