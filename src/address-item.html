@@ -157,6 +157,9 @@
       }
 
       _openDeleteDialog(e) {
+        if (this.isEditing) {
+          return
+        }
         if (this.isNarrow) {
           this.$.deleteDialog.positionTarget = null
         } else {
@@ -166,6 +169,7 @@
       }
 
       _delete() {
+        this._toggleDetails()
         this.dispatchEvent(new CustomEvent('delete', {detail: {id: this.address.id}}))
       }
 
