@@ -75,7 +75,7 @@
           <template is="dom-repeat" items="{{storedAddresses}}">
             <address-item
               address="{{item}}"
-              address-data="[[addressData]]"
+              address-data="[[_addressData(item.id, addressData)]]"
               price-data="[[priceData]]"
               is-narrow="[[isNarrow]]"
               on-delete="_deleteAddress">
@@ -144,6 +144,10 @@
               this.updateAll()
             }
           })
+      }
+
+      _addressData(address, addressData) {
+        return addressData ? addressData[address] : null
       }
 
       _shouldUpdate(newValue) {

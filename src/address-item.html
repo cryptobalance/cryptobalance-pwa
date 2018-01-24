@@ -170,17 +170,17 @@
       }
 
       _formatBalance(btcFormat, addressData) {
-        if (!(btcFormat && addressData && addressData[this.address.id])) {
+        if (!(btcFormat && addressData)) {
           return '- ' + (btcFormat ? btcFormat.name : 'BTC')
         }
-        return utils.formatBtc({btcFormat, amount: addressData[this.address.id].balance})
+        return utils.formatBtc({btcFormat, amount: addressData.balance})
       }
 
       _formatPrice(priceData, addressData) {
-        if (!(priceData && addressData && addressData[this.address.id])) {
+        if (!(priceData && addressData && addressData)) {
           return '- USD'
         }
-        const amount = addressData[this.address.id].balance / 100000000 * priceData.USD
+        const amount = addressData.balance / 100000000 * priceData.USD
         return OSREC.CurrencyFormatter.format(amount, {currency: 'USD'})
       }
 

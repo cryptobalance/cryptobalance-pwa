@@ -38,15 +38,15 @@
           </address-item-details-field>
           <address-item-details-field
             label="Received amount"
-            value="[[_getReceivedAmount(addressData, btcFormat)]]">
+            value="[[_getAmountData(addressData, btcFormat, 'total_received')]]">
           </address-item-details-field>
           <address-item-details-field
             label="Sent amount"
-            value="[[_getSentAmount(addressData, btcFormat)]]">
+            value="[[_getAmountData(addressData, btcFormat, 'total_sent')]]">
           </address-item-details-field>
           <address-item-details-field
             label="Unconfirmed balance"
-            value="[[_getUnconfirmedBalance(addressData, btcFormat)]]">
+            value="[[_getAmountData(addressData, btcFormat, 'unconfirmed_balance')]]">
           </address-item-details-field>
         </div>
       </div>
@@ -75,24 +75,12 @@
       }
 
       _getTransactionCount(addressData) {
-        return addressData && addressData[this.address.id] ? addressData[this.address.id].n_tx : '-'
+        return addressData ? addressData.n_tx : '-'
       }
 
-      _getReceivedAmount(addressData, btcFormat) {
-        return addressData && addressData[this.address.id] && btcFormat
-          ? utils.formatBtc({btcFormat, amount: addressData[this.address.id].total_received})
-          : '-'
-      }
-
-      _getSentAmount(addressData, btcFormat) {
-        return addressData && addressData[this.address.id] && btcFormat
-          ? utils.formatBtc({btcFormat, amount: addressData[this.address.id].total_sent})
-          : '-'
-      }
-
-      _getUnconfirmedBalance(addressData, btcFormat) {
-        return addressData && addressData[this.address.id] && btcFormat
-          ? utils.formatBtc({btcFormat, amount: addressData[this.address.id].unconfirmed_balance})
+      _getAmountData(addressData, btcFormat, field) {
+        return addressData && btcFormat
+          ? utils.formatBtc({btcFormat, amount: addressData[field]})
           : '-'
       }
     }
