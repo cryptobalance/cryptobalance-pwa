@@ -161,32 +161,37 @@
       }
 
       updateAll() {
-        const updatePromises = [
-          this.updateAddresses(),
-          this.updatePrice(),
-        ]
-        Promise.all(updatePromises)
-          .then(() => {
-            this.updatedAt = new Date()
-          })
+        this.updateAddresses({addresses: this.storedAddresses.map((address) => address.id)})
+        this.updatePrice()
       }
 
-      updateAddresses() {
-        if (this.storedAddresses.length === 0) {
+      updateAddresses({addresses, responses = []}) {
+        if (addresses.length === 0) {
           return
         }
 
+        const addressParam = addresses.splice(0, 3).join(';')
         const addressRequest = this.$.addressRequest
-        const addressParam = this.storedAddresses.map((address) => address.id).join(';')
         addressRequest.url = `https://api.blockcypher.com/v1/btc/main/addrs/${addressParam}/balance`
 
-        return addressRequest.generateRequest().completes.then((e) => {
-          this.addressData = [].concat(e.parseResponse())
-            .reduce((acc, address) => {
-              acc[address.address] = address
-              return acc
-            }, {})
-        })
+        addressRequest.generateRequest().completes
+          .then((e) => {
+            responses.push(e.parseResponse())
+            if (addresses.length === 0) {
+              this.addressData = this.parseAddressData(responses)
+              this.updatedAt = new Date()
+            } else {
+              setTimeout(() => this.updateAddresses({addresses, responses}), 1000)
+            }
+          })
+      }
+
+      parseAddressData(parsedResponses) {
+        return [].concat(...parsedResponses)
+          .reduce((acc, address) => {
+            acc[address.address] = address
+            return acc
+          }, {})
       }
 
       updatePrice() {
