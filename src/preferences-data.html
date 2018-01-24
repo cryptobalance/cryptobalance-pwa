@@ -4,6 +4,7 @@
 <dom-module id="preferences-data">
   <template>
     <app-localstorage-document key="btcFormat" data="{{savedBtcFormat}}">
+    <app-localstorage-document key="currency" data="{{currency}}">
   </template>
 
   <script>
@@ -27,6 +28,11 @@
               {name: 'bits', divideBy: 100, decimalCount: 2},
               {name: 'satoshis', divideBy: 1, decimalCount: 0},
             ],
+          },
+          currency: {
+            type: String,
+            value: 'USD',
+            notify: true,
           },
           savedBtcFormat: {
             type: String,

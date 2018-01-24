@@ -3,33 +3,57 @@
 <link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/neon-animation/web-animations.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 
 <link rel="import" href="preferences-data.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="preferences-page">
   <template>
-    <style include="shared-styles">
+    <style include="shared-styles iron-flex iron-flex-alignment">
       :host {
+      }
+      paper-item {
+        cursor: pointer;
       }
       .container {
         padding: 20px;
+        background-color: white;
       }
     </style>
 
-    <preferences-data btc-formats="{{btcFormats}}" saved-btc-format="{{savedBtcFormat}}"></preferences-data>
+    <iron-ajax auto url="/data/currencies.json" last-response="{{currencies}}"></iron-ajax>
+    <preferences-data
+      btc-formats="{{btcFormats}}"
+      saved-btc-format="{{savedBtcFormat}}"
+      currency="{{currency}}">
+    </preferences-data>
 
-    <div class="container">
-      <paper-dropdown-menu label="Format">
-        <paper-listbox
-          slot="dropdown-content"
-          attr-for-selected="text-content"
-          selected="{{savedBtcFormat}}">
-          <template is="dom-repeat" items="[[btcFormats]]">
-            <paper-item>[[item.name]]</paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
+    <div class="container layout vertical">
+      <div class="layout horizontal center-justified">
+        <paper-dropdown-menu label="Format">
+          <paper-listbox
+            slot="dropdown-content"
+            attr-for-selected="text-content"
+            selected="{{savedBtcFormat}}">
+            <template is="dom-repeat" items="[[btcFormats]]">
+              <paper-item>[[item.name]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+      <div class="layout horizontal center-justified">
+        <paper-dropdown-menu label="Currency">
+          <paper-listbox
+            slot="dropdown-content"
+            attr-for-selected="text-content"
+            selected="{{currency}}">
+            <template is="dom-repeat" items="[[currencies]]">
+              <paper-item>[[item]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
     </div>
 
   </template>

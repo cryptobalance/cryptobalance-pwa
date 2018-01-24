@@ -5,7 +5,6 @@
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
-<link rel="import" href="../bower_components/app-storage/app-indexeddb-mirror/app-indexeddb-mirror.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
@@ -43,7 +42,7 @@
       }
     </style>
 
-    <preferences-data btc-format="{{btcFormat}}"></preferences-data>
+    <preferences-data btc-format="{{btcFormat}}" currency="{{currency}}"></preferences-data>
 
     <div class="layout horizontal">
       <!-- Always visible navigation for non narrow screens -->
@@ -91,7 +90,7 @@
     </footer>
 
     <iron-ajax id="addressRequest"></iron-ajax>
-    <iron-ajax id="priceRequest" url="https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD"></iron-ajax>
+    <iron-ajax auto id="priceRequest" url="[[_priceRequestUrl(currency)]]" last-response="{{priceData}}"></iron-ajax>
     <app-localstorage-document id="updatedAt" key="updatedAt" data="{{updatedAt}}"></app-localstorage-document>
     <app-localstorage-document id="addressData" key="addressData" data="{{addressData}}"></app-localstorage-document>
     <app-localstorage-document id="priceData" key="priceData" data="{{priceData}}"></app-localstorage-document>
@@ -105,6 +104,7 @@
       static get properties() {
         return {
           addressData: Object,
+          btcFormat: Object,
           isNarrow: Boolean,
           priceData: Object,
           shouldUpdate: {
@@ -141,9 +141,13 @@
               : false
 
             if (!withinTimeLimit) {
-              this.updateAll()
+              this.updateAllAddresses()
             }
           })
+      }
+
+      _priceRequestUrl(currency) {
+        return 'https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=' + currency
       }
 
       _addressData(address, addressData) {
@@ -152,7 +156,7 @@
 
       _shouldUpdate(newValue) {
         if (newValue === true) {
-          this.updateAll()
+          this.updateAllAddresses()
           this.shouldUpdate = false
         }
       }
@@ -164,9 +168,8 @@
         }
       }
 
-      updateAll() {
+      updateAllAddresses() {
         this.updateAddresses({addresses: this.storedAddresses.map((address) => address.id)})
-        this.updatePrice()
       }
 
       updateAddresses({addresses, responses = []}) {
@@ -196,13 +199,6 @@
             acc[address.address] = address
             return acc
           }, {})
-      }
-
-      updatePrice() {
-        const request = this.$.priceRequest.generateRequest()
-        return request.completes.then((e) => {
-          this.priceData = e.parseResponse()
-        })
       }
 
       _formatUpdatedTime(time) {
@@ -235,17 +231,20 @@
 
       _formatPrice(priceData, addressChange, addressData) {
         if (!(priceData && addressChange && addressData)) {
-          return '- USD'
+          return '-'
         }
-        const amount = this.getBalance(addressChange.base, addressData) / 100000000 * priceData.USD
-        return OSREC.CurrencyFormatter.format(amount, {currency: 'USD'})
+        const currency = Object.keys(priceData)[0]
+        const balance = this.getBalance(addressChange.base, addressData)
+        const amount = balance / 100000000 * priceData[currency]
+        return OSREC.CurrencyFormatter.format(amount, {currency})
       }
 
       _formatCurrentPrice(priceData) {
         if (!priceData) {
           return ''
         }
-        return OSREC.CurrencyFormatter.format(priceData.USD, {currency: 'USD'})
+        const currency = Object.keys(priceData)[0]
+        return OSREC.CurrencyFormatter.format(priceData[currency], {currency})
       }
     }
 

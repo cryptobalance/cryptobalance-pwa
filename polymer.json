@@ -3,6 +3,7 @@
   "shell": "src/shell.html",
   "sources": [
     "src/**/*",
+    "data/**/*",
     "images/**/*"
   ],
   "extraDependencies": [

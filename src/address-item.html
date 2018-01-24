@@ -43,7 +43,7 @@
       }
     </style>
 
-    <preferences-data btc-format="{{btcFormat}}"></preferences-data>
+    <preferences-data btc-format="{{btcFormat}}" currency="{{currency}}"></preferences-data>
 
     <div class="list-item">
       <paper-item on-click="_toggleDetails">
@@ -178,10 +178,11 @@
 
       _formatPrice(priceData, addressData) {
         if (!(priceData && addressData && addressData)) {
-          return '- USD'
+          return '-'
         }
-        const amount = addressData.balance / 100000000 * priceData.USD
-        return OSREC.CurrencyFormatter.format(amount, {currency: 'USD'})
+        const currency = Object.keys(priceData)[0]
+        const amount = addressData.balance / 100000000 * priceData[currency]
+        return OSREC.CurrencyFormatter.format(amount, {currency})
       }
 
       _getArrowIcon() {
