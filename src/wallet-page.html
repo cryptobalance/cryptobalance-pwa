@@ -59,9 +59,9 @@
             <paper-button raised>add address</paper-button>
           </a>
           <div class="primary-text amounts">
-            <span class="large-text">[[_formatBalance(btcFormat, storedAddresses.*, addressData)]]</span>
+            <span class="large-text">[[_formatBalance(btcFormat, storedAddresses.*)]]</span>
             <br>
-            <span class="medium-text">[[_formatPrice(priceData, storedAddresses.*, addressData)]]</span>
+            <span class="medium-text">[[_formatPrice(priceData, storedAddresses.*)]]</span>
           </div>
           <div class="small-text">
             <span>Last update</span>
@@ -74,7 +74,6 @@
           <template is="dom-repeat" items="{{storedAddresses}}">
             <address-item
               address="{{item}}"
-              address-data="[[_addressData(item.id, addressData)]]"
               price-data="[[priceData]]"
               is-narrow="[[isNarrow]]"
               on-delete="_deleteAddress">
@@ -97,7 +96,6 @@
     <iron-ajax id="addressRequest"></iron-ajax>
     <iron-ajax auto id="priceRequest" url="[[_priceRequestUrl(currency)]]" last-response="{{priceData}}"></iron-ajax>
     <app-localstorage-document id="updatedAt" key="updatedAt" data="{{updatedAt}}"></app-localstorage-document>
-    <app-localstorage-document id="addressData" key="addressData" data="{{addressData}}"></app-localstorage-document>
     <app-localstorage-document id="priceData" key="priceData" data="{{priceData}}"></app-localstorage-document>
     <app-localstorage-document id="storedAddresses" key="storedAddresses" data="{{storedAddresses}}"></app-localstorage-document>
   </template>
@@ -108,16 +106,9 @@
 
       static get properties() {
         return {
-          addressData: Object,
           btcFormat: Object,
           isNarrow: Boolean,
           priceData: Object,
-          shouldUpdate: {
-            type: Boolean,
-            value: false,
-            notify: true,
-            observer: '_shouldUpdate',
-          },
           storedAddresses: {
             type: Array,
             value: () => [],
@@ -130,11 +121,16 @@
         }
       }
 
+      static get observers() {
+        return [
+          '_observeNewAddress(storedAddresses.splices)',
+        ]
+      }
+
       ready() {
         super.ready()
 
         const storagePromises = [
-          this.$.addressData.transactionsComplete,
           this.$.storedAddresses.transactionsComplete,
           this.$.updatedAt.transactionsComplete,
         ]
@@ -151,19 +147,19 @@
           })
       }
 
+      _observeNewAddress(change) {
+        const splice = change ? change.indexSplices[0] : null
+        if (splice && splice.addedCount === 1) {
+          const newAddress = splice.object[splice.index].id
+          this.makeAddressRequest({addressParam: newAddress})
+            .then((e) => {
+              this.set(['storedAddresses', splice.index, 'data'], e.parseResponse())
+            })
+        }
+      }
+
       _priceRequestUrl(currency) {
         return 'https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=' + currency
-      }
-
-      _addressData(address, addressData) {
-        return addressData ? addressData[address] : null
-      }
-
-      _shouldUpdate(newValue) {
-        if (newValue === true) {
-          this.updateAllAddresses()
-          this.shouldUpdate = false
-        }
       }
 
       _deleteAddress(e) {
@@ -177,25 +173,36 @@
         this.updateAddresses({addresses: this.storedAddresses.map((address) => address.id)})
       }
 
-      updateAddresses({addresses, responses = []}) {
+      updateAddresses({addresses, addressDataArray = []}) {
         if (addresses.length === 0) {
           return
         }
 
         const addressParam = addresses.splice(0, 3).join(';')
-        const addressRequest = this.$.addressRequest
-        addressRequest.url = `https://api.blockcypher.com/v1/btc/main/addrs/${addressParam}/balance`
 
-        addressRequest.generateRequest().completes
+        this.makeAddressRequest({addressParam})
           .then((e) => {
-            responses.push(e.parseResponse())
+            addressDataArray.push(...[].concat(e.parseResponse()))
             if (addresses.length === 0) {
-              this.addressData = this.parseAddressData(responses)
-              this.updatedAt = new Date()
+              this.setAddressData({addressDataArray})
             } else {
-              setTimeout(() => this.updateAddresses({addresses, responses}), 1000)
+              setTimeout(() => this.updateAddresses({addresses, addressDataArray}), 1000)
             }
           })
+      }
+
+      setAddressData({addressDataArray}) {
+        addressDataArray.forEach((addressData) => {
+          const index = this.storedAddresses.findIndex((a) => a.id === addressData.address)
+          this.set(['storedAddresses', index, 'data'], addressData)
+        })
+        this.updatedAt = new Date()
+      }
+
+      makeAddressRequest({addressParam}) {
+        const addressRequest = this.$.addressRequest
+        addressRequest.url = `https://api.blockcypher.com/v1/btc/main/addrs/${addressParam}/balance`
+        return addressRequest.generateRequest().completes
       }
 
       parseAddressData(parsedResponses) {
@@ -218,28 +225,28 @@
         }
       }
 
-      getBalance(addresses, addressData) {
-        return [].concat(addresses)
+      getBalance({addresses}) {
+        return addresses
           .reduce((amount, address) => {
-            amount += addressData[address.id] ? addressData[address.id].balance : 0
+            amount += address.data ? address.data.balance : 0
             return amount
           }, 0)
       }
 
-      _formatBalance(btcFormat, addressChange, addressData) {
-        if (!(btcFormat && addressChange && addressData)) {
+      _formatBalance(btcFormat, addressChange) {
+        if (!(btcFormat && addressChange)) {
           return '- ' + (btcFormat ? btcFormat.name : 'BTC')
         }
-        const amount = this.getBalance(addressChange.base, addressData)
+        const amount = this.getBalance({addresses: addressChange.base})
         return utils.formatBtc({btcFormat, amount})
       }
 
-      _formatPrice(priceData, addressChange, addressData) {
-        if (!(priceData && addressChange && addressData)) {
+      _formatPrice(priceData, addressChange) {
+        if (!(priceData && addressChange)) {
           return '-'
         }
         const currency = Object.keys(priceData)[0]
-        const balance = this.getBalance(addressChange.base, addressData)
+        const balance = this.getBalance({addresses: addressChange.base})
         const amount = balance / 100000000 * priceData[currency]
         return OSREC.CurrencyFormatter.format(amount, {currency})
       }

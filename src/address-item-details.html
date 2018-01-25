@@ -34,19 +34,19 @@
           <span class="medium-text">[[address.id]]</span>
           <address-item-details-field
             label="No. transactions"
-            value="[[_getTransactionCount(addressData)]]">
+            value="[[_getTransactionCount(address.data)]]">
           </address-item-details-field>
           <address-item-details-field
             label="Received amount"
-            value="[[_getAmountData(addressData, btcFormat, 'total_received')]]">
+            value="[[_getAmountData(address.data, btcFormat, 'total_received')]]">
           </address-item-details-field>
           <address-item-details-field
             label="Sent amount"
-            value="[[_getAmountData(addressData, btcFormat, 'total_sent')]]">
+            value="[[_getAmountData(address.data, btcFormat, 'total_sent')]]">
           </address-item-details-field>
           <address-item-details-field
             label="Unconfirmed balance"
-            value="[[_getAmountData(addressData, btcFormat, 'unconfirmed_balance')]]">
+            value="[[_getAmountData(address.data, btcFormat, 'unconfirmed_balance')]]">
           </address-item-details-field>
         </div>
       </div>
@@ -60,7 +60,6 @@
       static get properties() {
         return {
           address: Object,
-          addressData: Object,
           btcFormat: Object,
         }
       }

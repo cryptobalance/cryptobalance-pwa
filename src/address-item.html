@@ -62,8 +62,8 @@
             </div>
           </paper-input>
           <div secondary class="primary-text">
-            <span class="bold medium-text">[[_formatBalance(btcFormat, addressData)]]</span>
-            <span>([[_formatPrice(priceData, addressData)]])</span>
+            <span class="bold medium-text">[[_formatBalance(btcFormat, address.data)]]</span>
+            <span>([[_formatPrice(priceData, address.data)]])</span>
           </div>
         </paper-item-body>
         <iron-icon icon="[[_getArrowIcon(isDetailsOpen)]]"></iron-icon>
@@ -71,7 +71,6 @@
       <iron-collapse opened="[[isDetailsOpen]]">
         <address-item-details
           address=[[address]]
-          address-data=[[addressData]]
           btc-format="[[btcFormat]]"
           on-open-delete-dialog="_openDeleteDialog"
           on-edit="_toggleEditMode">
@@ -102,7 +101,6 @@
             type: Object,
             notify: true,
           },
-          addressData: Object,
           isDetailsOpen: {
             type: Boolean,
             value: false,

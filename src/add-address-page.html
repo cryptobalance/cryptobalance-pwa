@@ -94,10 +94,6 @@
             type: Boolean,
             reflectToAttribute: true,
           },
-          shouldUpdate: {
-            type: Boolean,
-            notify: true,
-          },
           storedAddresses: {
             type: Array,
             notify: true,
@@ -126,7 +122,6 @@
             name: this.addressName ? this.addressName.trim() : newAddress,
           }
           this.push('storedAddresses', toSave)
-          this.shouldUpdate = true
           this.address = ''
           this.addressName = ''
           this.showSuccessToast()
