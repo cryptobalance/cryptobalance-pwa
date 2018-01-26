@@ -80,6 +80,7 @@
         return {
           address: String,
           addressName: String,
+          currentGroup: String,
           inputErrorMessage: String,
           isInputInvalid: {
             type: Boolean,
@@ -120,6 +121,7 @@
           const toSave = {
             id: newAddress,
             name: this.addressName ? this.addressName.trim() : newAddress,
+            group: this.currentGroup,
           }
           this.push('storedAddresses', toSave)
           this.address = ''

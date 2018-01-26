@@ -1,7 +1,10 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 
 <link rel="import" href="shared-styles.html">
 
@@ -17,6 +20,16 @@
         margin: 8px;
         height: 100%;
       }
+      :host(:not([is-adding])) #groupNameInput {
+        display: none;
+      }
+      :host([is-adding]) paper-button {
+        display: none;
+      }
+      #groupNameInput {
+        padding: 5px;
+        margin-bottom: 24px;
+      }
       .toolbar {
         line-height: 80px;
         font-size: 22px;
@@ -28,7 +41,7 @@
         display: block;
         padding: 0 16px;
         line-height: 40px;
-        color: black;
+        cursor: pointer;
       }
       .drawer-list a.iron-selected {
         font-weight: bold;
@@ -42,11 +55,27 @@
 
     <div class="toolbar bold bg-white primary-text large-text center-text">Wallets</div>
     <div class="bg-white content">
-      <iron-selector selected="balances" attr-for-selected="name" class="drawer-list" role="navigation">
-        <a name="balances">Default</a>
+      <iron-selector selected="{{currentGroup}}" attr-for-selected="name" class="drawer-list" role="navigation">
+        <template is="dom-repeat" items="[[addressGroups]]">
+          <a name="[[item]]">[[item]]</a>
+        </template>
       </iron-selector>
+      <paper-input
+        id="groupNameInput"
+        value="{{groupInput}}"
+        label="New group"
+        on-keydown="_groupInputKeyDown"
+        auto-validate="false"
+        error-message="{{inputErrorMessage}}"
+        invalid="{{isInputInvalid}}"
+        always-float-label>
+        <div slot="suffix" class="layout horizontal no-wrap">
+          <paper-icon-button class="green" icon="check" on-click="_addGroup"></paper-icon-button>
+          <paper-icon-button class="red" icon="clear" on-click="_cancelAdd"></paper-icon-button>
+        </div>
+      </paper-input>
       <div class="layout horizontal center-justified">
-        <paper-button raised class="bold btn">new wallet</paper-button>
+        <paper-button raised class="bold btn" on-click="_newGroup">new group</paper-button>
       </div>
     </div>
   </template>
@@ -54,6 +83,57 @@
   <script>
     class WalletNavigator extends Polymer.Element {
       static get is() { return 'wallet-navigator' }
+
+      static get properties() {
+        return {
+          addressGroups: {
+            type: Array,
+            notify: true,
+          },
+          currentGroup: {
+            type: String,
+            notify: true,
+          },
+          groupInput: String,
+          inputErrorMessage: String,
+          isAdding: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true,
+          },
+          isInputInvalid: {
+            type: Boolean,
+            value: false,
+          },
+        }
+      }
+
+      _newGroup() {
+        this.groupInput = ''
+        this.isAdding = true
+        this.$.groupNameInput.focus()
+      }
+
+      _addGroup() {
+        const groupName = this.groupInput.trim()
+        if (this.addressGroups.find((group) => group === groupName)) {
+          this.inputErrorMessage = 'Group name already exists'
+          this.isInputInvalid = true
+        } else {
+          this._cancelAdd()
+          this.push('addressGroups', groupName)
+        }
+      }
+
+      _cancelAdd() {
+        this.isAdding = false
+      }
+
+      _groupInputKeyDown(e) {
+        if (e.keyCode === 13) {
+          this._addGroup()
+        }
+      }
     }
 
 window.customElements.define(WalletNavigator.is, WalletNavigator)

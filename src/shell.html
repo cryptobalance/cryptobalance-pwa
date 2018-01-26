@@ -83,11 +83,17 @@
 
     <iron-media-query query="max-width: 770px" query-matches="{{isNarrow}}"></iron-media-query>
 
+    <app-localstorage-document id="addressGroups" key="addressGroups" data="{{addressGroups}}"></app-localstorage-document>
+
     <!-- Drawer navigation for narrow screens -->
     <dom-if if="[[isNarrow]]">
       <template>
         <app-drawer opened={{isDrawerOpen}} swipe-open tabindex="0">
-          <wallet-navigator is-drawer></wallet-navigator>
+          <wallet-navigator
+            is-drawer
+            address-groups="{{addressGroups}}"
+            current-group={{currentAddressGroup}}>
+          </wallet-navigator>
         </app-drawer>
       </template>
     </dom-if>
@@ -114,12 +120,15 @@
         <wallet-page
           name="wallet"
           is-narrow="[[isNarrow]]"
+          address-groups="{{addressGroups}}"
+          current-group="{{currentAddressGroup}}"
           stored-addresses="{{storedAddresses}}">
         </wallet-page>
         <preferences-page name="preferences"></preferences-page>
         <add-address-page
           name="add-address"
           is-narrow="[[isNarrow]]"
+          current-group="[[currentAddressGroup]]"
           stored-addresses="{{storedAddresses}}">
         </add-address-page>
         <not-found-page name="not-found"></not-found-page>
@@ -133,6 +142,12 @@
 
       static get properties() {
         return {
+          addressGroups: {
+            type: Array,
+            value: () => ['Default'],
+            observer: '_observeAddressGroup',
+          },
+          currentAddressGroup: String,
           isDrawerOpen: {
             type: Boolean,
             value: false,
@@ -158,6 +173,10 @@
         return [
           '_routePageChanged(routeData.page)',
         ]
+      }
+
+      _observeAddressGroup(addressGroup) {
+        this.currentAddressGroup = addressGroup[0]
       }
 
       _routePageChanged(page) {

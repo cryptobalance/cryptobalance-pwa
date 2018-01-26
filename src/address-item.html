@@ -100,7 +100,9 @@
           address: {
             type: Object,
             notify: true,
+            observer: '_observeAddress',
           },
+          currency: String,
           isDetailsOpen: {
             type: Boolean,
             value: false,
@@ -117,6 +119,11 @@
           nameInput: String,
           priceData: Object,
         }
+      }
+
+      _observeAddress(address) {
+        this.isDetailsOpen = false
+        this.isEditing = false
       }
 
       _nameInputKeyDown(e) {

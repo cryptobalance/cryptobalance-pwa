@@ -48,7 +48,7 @@
       <!-- Always visible navigation for non narrow screens -->
       <dom-if if="[[!isNarrow]]">
         <template>
-          <wallet-navigator></wallet-navigator>
+          <wallet-navigator address-groups="{{addressGroups}}" current-group="{{currentGroup}}"></wallet-navigator>
         </template>
       </dom-if>
 
@@ -71,7 +71,7 @@
         </div>
 
         <div class="list" tabindex="0">
-          <template is="dom-repeat" items="{{storedAddresses}}">
+          <template is="dom-repeat" items="{{storedAddresses}}" filter="{{_isCurrentGroup(currentGroup)}}">
             <address-item
               address="{{item}}"
               price-data="[[priceData]]"
@@ -106,7 +106,16 @@
 
       static get properties() {
         return {
+          addressGroups: {
+            type: Array,
+            notify: true,
+          },
           btcFormat: Object,
+          currency: String,
+          currentGroup: {
+            type: String,
+            notify: true,
+          },
           isNarrow: Boolean,
           priceData: Object,
           storedAddresses: {
@@ -155,6 +164,12 @@
             .then((e) => {
               this.set(['storedAddresses', splice.index, 'data'], e.parseResponse())
             })
+        }
+      }
+
+      _isCurrentGroup(currentGroup) {
+        return (address) => {
+          return address.group === currentGroup
         }
       }
 
