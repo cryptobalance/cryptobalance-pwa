@@ -44,47 +44,49 @@
 
     <preferences-data btc-format="{{btcFormat}}" currency="{{currency}}"></preferences-data>
 
+    <!-- Main content -->
+    <div class="toolbar bg-white center-text layout horizontal around-justified center">
+      <a href="[[rootPath]]add-address">
+        <paper-button raised>add address</paper-button>
+      </a>
+      <div class="primary-text amounts">
+        <span class="large-text">[[_formatBalance(btcFormat, storedAddresses.*, currentGroup)]]</span>
+        <br>
+        <span class="medium-text">[[_formatPrice(priceData, storedAddresses.*, currentGroup)]]</span>
+      </div>
+      <div class="small-text">
+        <span>Last update</span>
+        <br>
+        <span>[[_formatUpdatedTime(updatedAt)]]</span>
+      </div>
+    </div>
+
     <div class="layout horizontal">
       <!-- Always visible navigation for non narrow screens -->
       <dom-if if="[[!isNarrow]]">
         <template>
-          <wallet-navigator address-groups="{{addressGroups}}" current-group="{{currentGroup}}"></wallet-navigator>
+          <wallet-navigator
+            address-groups="{{addressGroups}}"
+            current-group="{{currentGroup}}"
+            stored-addresses="{{storedAddresses}}">
+          </wallet-navigator>
         </template>
       </dom-if>
 
-      <!-- Main content -->
-      <div class="flex">
-        <div class="toolbar bg-white center-text layout horizontal around-justified center">
-          <a href="[[rootPath]]add-address">
-            <paper-button raised>add address</paper-button>
-          </a>
-          <div class="primary-text amounts">
-            <span class="large-text">[[_formatBalance(btcFormat, storedAddresses.*)]]</span>
-            <br>
-            <span class="medium-text">[[_formatPrice(priceData, storedAddresses.*)]]</span>
-          </div>
-          <div class="small-text">
-            <span>Last update</span>
-            <br>
-            <span>[[_formatUpdatedTime(updatedAt)]]</span>
-          </div>
-        </div>
-
-        <div class="list" tabindex="0">
-          <template is="dom-repeat" items="{{storedAddresses}}" filter="{{_isCurrentGroup(currentGroup)}}">
-            <address-item
-              address="{{item}}"
-              price-data="[[priceData]]"
-              is-narrow="[[isNarrow]]"
-              on-delete="_deleteAddress">
-            </address-item>
+      <div class="list flex" tabindex="0">
+        <template is="dom-repeat" items="{{storedAddresses}}" filter="{{_isCurrentGroup(currentGroup)}}">
+          <address-item
+            address="{{item}}"
+            price-data="[[priceData]]"
+            is-narrow="[[isNarrow]]"
+            on-delete="_deleteAddress">
+          </address-item>
+        </template>
+        <dom-if if="[[!storedAddresses.length]]">
+          <template>
+            <h2 class="center-text">This group is empty.</h2>
           </template>
-          <dom-if if="[[!storedAddresses.length]]">
-            <template>
-              <h2 class="center-text">This group is empty.</h2>
-            </template>
-          </dom-if>
-        </div>
+        </dom-if>
       </div>
     </div>
 
@@ -248,20 +250,26 @@
           }, 0)
       }
 
-      _formatBalance(btcFormat, addressChange) {
+      _formatBalance(btcFormat, addressChange, group) {
         if (!(btcFormat && addressChange)) {
           return '- ' + (btcFormat ? btcFormat.name : 'BTC')
         }
-        const amount = this.getBalance({addresses: addressChange.base})
+        const addresses = group
+          ? addressChange.base.filter((address) => address.group === group)
+          : addressChange.base
+        const amount = this.getBalance({addresses})
         return utils.formatBtc({btcFormat, amount})
       }
 
-      _formatPrice(priceData, addressChange) {
+      _formatPrice(priceData, addressChange, group) {
         if (!(priceData && addressChange)) {
           return '-'
         }
+        const addresses = group
+          ? addressChange.base.filter((address) => address.group === group)
+          : addressChange.base
+        const balance = this.getBalance({addresses})
         const currency = Object.keys(priceData)[0]
-        const balance = this.getBalance({addresses: addressChange.base})
         const amount = balance / 100000000 * priceData[currency]
         return OSREC.CurrencyFormatter.format(amount, {currency})
       }

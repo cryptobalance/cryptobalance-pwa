@@ -92,7 +92,8 @@
           <wallet-navigator
             is-drawer
             address-groups="{{addressGroups}}"
-            current-group={{currentAddressGroup}}>
+            current-group={{currentAddressGroup}}
+            stored-addresses="{{storedAddresses}}">
           </wallet-navigator>
         </app-drawer>
       </template>
@@ -146,6 +147,7 @@
             type: Array,
             value: () => ['Default'],
             observer: '_observeAddressGroup',
+            notify: true,
           },
           currentAddressGroup: String,
           isDrawerOpen: {

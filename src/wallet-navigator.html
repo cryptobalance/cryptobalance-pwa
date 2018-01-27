@@ -2,10 +2,12 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 
+<link rel="import" href="group-navigator-item.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="wallet-navigator">
@@ -17,57 +19,65 @@
       }
       :host(:not([is-drawer])) .content {
         box-shadow: var(--shadow-elevation-2dp_-_box-shadow);
-        margin: 8px;
+        margin: 8px 0;
         height: 100%;
       }
       :host(:not([is-adding])) #groupNameInput {
         display: none;
       }
-      :host([is-adding]) paper-button {
+      :host([is-adding]) .content paper-button {
         display: none;
+      }
+      iron-selector {
+        margin-top: 20px;
       }
       #groupNameInput {
         padding: 5px;
-        margin-bottom: 24px;
+        margin-bottom: 8px;
       }
       .toolbar {
         line-height: 80px;
         font-size: 22px;
       }
-      .drawer-list {
-        margin: 0 20px;
+      .margin {
+        margin-bottom: 32px;
       }
-      .drawer-list a {
-        display: block;
-        padding: 0 16px;
-        line-height: 40px;
-        cursor: pointer;
-      }
-      .drawer-list a.iron-selected {
-        font-weight: bold;
+      .edit-icon[active] {
         color: var(--app-primary-color);
-        background-color: var(--app-secondary-color);
-      }
-      .btn {
-        margin: 32px 0px;
+        background: var(--app-secondary-color);
       }
     </style>
 
-    <div class="toolbar bold bg-white primary-text large-text center-text">Wallets</div>
     <div class="bg-white content">
-      <iron-selector selected="{{currentGroup}}" attr-for-selected="name" class="drawer-list" role="navigation">
-        <template is="dom-repeat" items="[[addressGroups]]">
-          <a name="[[item]]">[[item]]</a>
-        </template>
-      </iron-selector>
+      <div class="margin layout horizontal end-justified">
+        <paper-icon-button
+          class="edit-icon"
+          icon="create"
+          active="{{showSettings}}"
+          toggles
+          noink>
+        </paper-icon-button>
+      </div>
+      <div class="margin">
+        <iron-selector selected="{{currentGroup}}" attr-for-selected="name" selected-attribute="selected">
+          <template is="dom-repeat" items="[[addressGroups]]">
+            <group-navigator-item
+              name="[[item]]"
+              show-settings="[[showSettings]]"
+              on-delete="_deleteGroup"
+              on-open-edit-dialog="_openEditDialog">
+            </group-navigator-item>
+          </template>
+        </iron-selector>
+      </div>
       <paper-input
         id="groupNameInput"
         value="{{groupInput}}"
         label="New group"
         on-keydown="_groupInputKeyDown"
         auto-validate="false"
-        error-message="{{inputErrorMessage}}"
-        invalid="{{isInputInvalid}}"
+        error-message="{{addInputErrorMessage}}"
+        invalid="{{isAddInputInvalid}}"
         always-float-label>
         <div slot="suffix" class="layout horizontal no-wrap">
           <paper-icon-button class="green" icon="check" on-click="_addGroup"></paper-icon-button>
@@ -75,9 +85,31 @@
         </div>
       </paper-input>
       <div class="layout horizontal center-justified">
-        <paper-button raised class="bold btn" on-click="_newGroup">new group</paper-button>
+        <paper-button raised class="bold margin" on-click="_newGroup">new group</paper-button>
       </div>
     </div>
+
+    <paper-dialog
+      id="editDialog"
+      no-overlap="[[!isDrawer]]"
+      horizontal-align="[[_horizontalAlign(isDrawer)]]"
+      vertical-align="[[_verticalAlign(isDrawer)]]">
+      <h2>Edit name of [[editDialogGroup]]</h2>
+      <paper-input
+        id="editNameInput"
+        value="{{editNameInput}}"
+        label="New name"
+        on-keydown="_nameInputKeyDown"
+        auto-validate="false"
+        error-message="{{editInputErrorMessage}}"
+        invalid="{{isEditInputInvalid}}"
+        always-float-label>
+      </paper-input>
+      <div>
+        <paper-button raised dialog-dismiss>Cancel</paper-button>
+        <paper-button raised on-click="_editName">Save</paper-button>
+      </div>
+    </paper-dialog>
   </template>
 
   <script>
@@ -86,6 +118,7 @@
 
       static get properties() {
         return {
+          addInputErrorMessage: String,
           addressGroups: {
             type: Array,
             notify: true,
@@ -94,16 +127,31 @@
             type: String,
             notify: true,
           },
+          editDialogGroup: String,
+          editInputErrorMessage: String,
+          editNameInput: String,
           groupInput: String,
-          inputErrorMessage: String,
           isAdding: {
             type: Boolean,
             value: false,
             reflectToAttribute: true,
           },
-          isInputInvalid: {
+          isDrawer: {
             type: Boolean,
             value: false,
+            reflectToAttribute: true,
+          },
+          isAddInputInvalid: {
+            type: Boolean,
+            value: false,
+          },
+          isEditInputInvalid: {
+            type: Boolean,
+            value: false,
+          },
+          storedAddresses: {
+            type: Array,
+            notify: true,
           },
         }
       }
@@ -115,13 +163,14 @@
       }
 
       _addGroup() {
-        const groupName = this.groupInput.trim()
-        if (this.addressGroups.find((group) => group === groupName)) {
-          this.inputErrorMessage = 'Group name already exists'
-          this.isInputInvalid = true
-        } else {
+        const name = this.groupInput.trim()
+        const result = this.validateGroupName({name})
+        if (result.isValid) {
           this._cancelAdd()
-          this.push('addressGroups', groupName)
+          this.push('addressGroups', name)
+        } else {
+          this.addInputErrorMessage = result.message
+          this.isAddInputInvalid = true
         }
       }
 
@@ -130,12 +179,78 @@
       }
 
       _groupInputKeyDown(e) {
-        if (e.keyCode === 13) {
+        if (e.keyCode === 13) { // On enter
           this._addGroup()
         }
+      }
+
+      _nameInputKeyDown(e) {
+        if (e.keyCode === 13) { // On enter
+          this._editName()
+        }
+      }
+
+      _deleteGroup(e) {
+        const index = this.addressGroups.findIndex((group) => group === e.detail.group)
+        this.splice('addressGroups', index, 1)
+      }
+
+      _openEditDialog(e) {
+        if (this.isDrawer) {
+          this.$.editDialog.positionTarget = null
+        } else {
+          this.$.editDialog.positionTarget = e.detail.editButton
+        }
+        this.editDialogGroup = e.detail.group
+        this.editNameInput = ''
+        this.$.editDialog.open()
+      }
+
+      _editName() {
+        const name = this.editNameInput.trim()
+        const result = this.validateGroupName({name})
+        if (result.isValid) {
+          const index = this.addressGroups.findIndex((group) => group === this.editDialogGroup)
+          this.set(['addressGroups', index], name)
+          this.currentGroup = name
+          this.changeAddressGroups({oldGroup: this.editDialogGroup, newGroup: name})
+          this.$.editDialog.close()
+        } else {
+          this.editInputErrorMessage = result.message
+          this.isEditInputInvalid = true
+        }
+      }
+
+      _horizontalAlign(isDrawer) {
+        return isDrawer ? '' : 'left'
+      }
+
+      _verticalAlign(isDrawer) {
+        return isDrawer ? '' : 'top'
+      }
+
+      changeAddressGroups({oldGroup, newGroup}) {
+        this.storedAddresses.forEach((address, index) => {
+          if (address.group === oldGroup) {
+            this.set(['storedAddresses', index, 'group'], newGroup)
+          }
+        })
+      }
+
+      validateGroupName({name}) {
+        let message = ''
+        let isValid = true
+        if (name === '') {
+          message = 'The name can not be empty'
+          isValid = false
+        } else if (this.addressGroups.find((group) => group === name)) {
+          message = 'Group name already exists'
+          isValid = false
+        }
+        return {message, isValid}
       }
     }
 
 window.customElements.define(WalletNavigator.is, WalletNavigator)
-    </script>
+  </script>
 </dom-module>

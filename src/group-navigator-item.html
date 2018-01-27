@@ -1,0 +1,61 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="group-navigator-item">
+  <template>
+    <style include="shared-styles iron-flex">
+      :host(:not([show-settings])) .setting-btn {
+        display: none;
+      }
+      :host([selected]) span {
+        font-weight: bold;
+        color: var(--app-primary-color);
+        background-color: var(--app-secondary-color);
+      }
+      span {
+        display: block;
+        padding: 0 16px;
+        line-height: 40px;
+        cursor: pointer;
+      }
+    </style>
+
+    <div class="layout horizontal">
+      <paper-icon-button id="editButton" class="setting-btn green" icon="create" on-tap="_openEditDialog"></paper-icon-button>
+      <paper-icon-button class="setting-btn red" icon="delete" on-tap="_delete"></paper-icon-button>
+      <span class="flex">[[name]]</span>
+    </div>
+  </template>
+
+  <script>
+    class GroupNavigatorItem extends Polymer.Element {
+      static get is() { return 'group-navigator-item' }
+
+      static get properties() {
+        return {
+          name: String,
+          showSettings: {
+            type: Boolean,
+            reflectToAttribute: true,
+          },
+        }
+      }
+
+      _openEditDialog(e) {
+        e.stopPropagation()
+        const group = this.name
+        const editButton = this.$.editButton
+        this.dispatchEvent(new CustomEvent('open-edit-dialog', {detail: {group, editButton}}))
+      }
+
+      _delete(e) {
+        e.stopPropagation()
+        this.dispatchEvent(new CustomEvent('delete', {detail: {group: this.name}}))
+      }
+    }
+
+window.customElements.define(GroupNavigatorItem.is, GroupNavigatorItem)
+  </script>
+</dom-module>
