@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
@@ -9,8 +10,21 @@
 <dom-module id="address-toolbar">
   <template>
     <style include="shared-styles iron-flex iron-flex-alignment">
+      :host([is-narrow]) paper-button {
+        display: none;
+      }
+      :host(:not([is-narrow])) paper-icon-button {
+        display: none;
+      }
       paper-button span {
         margin-left: 8px;
+      }
+      paper-icon-button {
+        color: white;
+        background-color: var(--paper-purple-900);
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
       }
       .toolbar {
         height: 80px;
@@ -19,34 +33,30 @@
       .content {
         height: 100%;
       }
-      .content .item {
-        width: 33%;
-      }
       .content .amounts {
         text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.14);
       }
     </style>
 
     <div class="toolbar bg-white">
-      <div class="content center-text layout horizontal center">
-        <div class="small-text item">
-          <span>Last update</span>
+      <div class="content center-text layout horizontal around-justified center">
+        <div class="small-text">
+          <span>Updated</span>
           <br>
           <span>[[_formatUpdatedTime(updatedAt)]]</span>
         </div>
-        <div class="primary-text amounts item">
+        <div class="primary-text amounts">
           <span class="large-text">[[_formatBalance(btcFormat, storedAddresses.*, currentGroup)]]</span>
           <br>
           <span class="medium-text">[[_formatPrice(priceData, storedAddresses.*, currentGroup)]]</span>
         </div>
-        <div class="item">
-          <a href="[[rootPath]]add-address">
-            <paper-button raised>
-              <iron-icon icon="icons:add"></iron-icon>
-              <span>address</span>
-            </paper-button>
-          </a>
-        </div>
+        <a href="[[rootPath]]add-address">
+          <paper-button raised>
+            <iron-icon icon="icons:add"></iron-icon>
+            <span>[[_addButtonText(isNarrow)]]</span>
+          </paper-button>
+          <paper-icon-button icon="icons:add"></paper-icon-button>
+        </a>
       </div>
     </div>
   </template>
@@ -59,10 +69,18 @@
         return {
           btcFormat: Object,
           currentGroup: String,
+          isNarrow: {
+            type: Boolean,
+            reflectToAttribute: true,
+          },
           priceData: Object,
           storedAddresses: Array,
           updatedAt: Date,
         }
+      }
+
+      _addButtonText(isNarrow) {
+        return isNarrow ? '' : 'address'
       }
 
       getBalance({addresses}) {
@@ -101,12 +119,7 @@
         if (!time) {
           return '-'
         }
-        const updatedAt = moment(time)
-        if (updatedAt.isSame(moment(), 'day')) {
-          return updatedAt.format('HH:mm')
-        } else {
-          return updatedAt.format('YYYY-MM-DD HH:mm')
-        }
+        return moment(time).format('HH:mm')
       }
     }
 
