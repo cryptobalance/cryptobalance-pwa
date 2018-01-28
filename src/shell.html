@@ -18,6 +18,7 @@
 <link rel="lazy-import" href="wallet-page.html">
 <link rel="lazy-import" href="not-found-page.html">
 <link rel="lazy-import" href="add-address-page.html">
+<link rel="lazy-import" href="about-page.html">
 
 <dom-module id="app-shell">
   <template>
@@ -132,6 +133,7 @@
           current-group="[[currentAddressGroup]]"
           stored-addresses="{{storedAddresses}}">
         </add-address-page>
+        <about-page name="about"></about-page>
         <not-found-page name="not-found"></not-found-page>
       </iron-pages>
     </app-header-layout>

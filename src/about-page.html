@@ -1,0 +1,21 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="about-page">
+  <template>
+    <style include="shared-styles">
+    </style>
+
+    <div class="container center-text bg-white">
+      <p>This app is an open-source project developed under the MIT license.</p>
+      <p>Visit the <a href="https://github.com/lirre8/crypto-balance" target="_blank">Github</a> page for more information.</p>
+    </div>
+  </template>
+
+  <script>
+    class AboutPage extends Polymer.Element {
+      static get is() { return 'about-page' }
+    }
+
+window.customElements.define(AboutPage.is, AboutPage)
+  </script>
+</dom-module>
