@@ -78,7 +78,10 @@
 
       static get properties() {
         return {
-          address: String,
+          address: {
+            type: String,
+            value: '',
+          },
           addressName: String,
           currentGroup: String,
           inputErrorMessage: String,

@@ -1,0 +1,115 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="address-toolbar">
+  <template>
+    <style include="shared-styles iron-flex iron-flex-alignment">
+      paper-button span {
+        margin-left: 8px;
+      }
+      .toolbar {
+        height: 80px;
+        box-shadow: var(--shadow-elevation-2dp_-_box-shadow);
+      }
+      .content {
+        height: 100%;
+      }
+      .content .item {
+        width: 33%;
+      }
+      .content .amounts {
+        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.14);
+      }
+    </style>
+
+    <div class="toolbar bg-white">
+      <div class="content center-text layout horizontal center">
+        <div class="small-text item">
+          <span>Last update</span>
+          <br>
+          <span>[[_formatUpdatedTime(updatedAt)]]</span>
+        </div>
+        <div class="primary-text amounts item">
+          <span class="large-text">[[_formatBalance(btcFormat, storedAddresses.*, currentGroup)]]</span>
+          <br>
+          <span class="medium-text">[[_formatPrice(priceData, storedAddresses.*, currentGroup)]]</span>
+        </div>
+        <div class="item">
+          <a href="[[rootPath]]add-address">
+            <paper-button raised>
+              <iron-icon icon="icons:add"></iron-icon>
+              <span>address</span>
+            </paper-button>
+          </a>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    class AddressToolbar extends Polymer.Element {
+      static get is() { return 'address-toolbar' }
+
+      static get properties() {
+        return {
+          btcFormat: Object,
+          currentGroup: String,
+          priceData: Object,
+          storedAddresses: Array,
+          updatedAt: Date,
+        }
+      }
+
+      getBalance({addresses}) {
+        return addresses
+          .reduce((amount, address) => {
+            amount += address.data ? address.data.balance : 0
+            return amount
+          }, 0)
+      }
+
+      _formatBalance(btcFormat, addressChange, group) {
+        if (!(btcFormat && addressChange)) {
+          return '- ' + (btcFormat ? btcFormat.name : 'BTC')
+        }
+        const addresses = group
+          ? addressChange.base.filter((address) => address.group === group)
+          : addressChange.base
+        const amount = this.getBalance({addresses})
+        return utils.formatBtc({btcFormat, amount})
+      }
+
+      _formatPrice(priceData, addressChange, group) {
+        if (!(priceData && addressChange)) {
+          return '-'
+        }
+        const addresses = group
+          ? addressChange.base.filter((address) => address.group === group)
+          : addressChange.base
+        const balance = this.getBalance({addresses})
+        const currency = Object.keys(priceData)[0]
+        const amount = balance / 100000000 * priceData[currency]
+        return OSREC.CurrencyFormatter.format(amount, {currency})
+      }
+
+      _formatUpdatedTime(time) {
+        if (!time) {
+          return '-'
+        }
+        const updatedAt = moment(time)
+        if (updatedAt.isSame(moment(), 'day')) {
+          return updatedAt.format('HH:mm')
+        } else {
+          return updatedAt.format('YYYY-MM-DD HH:mm')
+        }
+      }
+    }
+
+window.customElements.define(AddressToolbar.is, AddressToolbar)
+  </script>
+</dom-module>

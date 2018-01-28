@@ -25,6 +25,7 @@
       :host {
         --app-primary-color: var(--paper-indigo-700);
         --app-secondary-color: var(--paper-indigo-100);
+        --app-max-width: 1150px;
 
         display: block;
       }
@@ -60,14 +61,13 @@
       }
 
       app-header app-toolbar {
-        max-width: 1024px;
+        max-width: var(--app-max-width);
         margin: 0 auto;
       }
 
       iron-pages {
         height: 100%;
         width: 100%;
-        max-width: 1024px;
         margin: 0 auto;
       }
 

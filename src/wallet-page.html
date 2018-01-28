@@ -1,29 +1,22 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
-<link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="../bower_components/app-storage/app-localstorage/app-localstorage-document.html">
 <link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="wallet-navigator.html">
 <link rel="import" href="address-item.html">
 <link rel="import" href="preferences-data.html">
+<link rel="import" href="address-toolbar.html">
 
 <script src="../bower_components/moment/min/moment.min.js"></script>
 <script src="../browserify-libs.js"></script>
 
 <dom-module id="wallet-page">
   <template>
-    <style include="shared-styles iron-flex iron-flex-alignment">
-      paper-icon-button {
-        --paper-icon-button-ink-color: var(--app-primary-color);
-      }
+    <style include="shared-styles iron-flex">
       footer {
         position: fixed;
         bottom: 0;
@@ -37,31 +30,19 @@
       footer span {
         margin-left: 5px;
       }
-      .toolbar .amounts {
-        text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.14);
-      }
     </style>
 
     <preferences-data btc-format="{{btcFormat}}" currency="{{currency}}"></preferences-data>
 
-    <!-- Main content -->
-    <div class="toolbar bg-white center-text layout horizontal around-justified center">
-      <a href="[[rootPath]]add-address">
-        <paper-button raised>add address</paper-button>
-      </a>
-      <div class="primary-text amounts">
-        <span class="large-text">[[_formatBalance(btcFormat, storedAddresses.*, currentGroup)]]</span>
-        <br>
-        <span class="medium-text">[[_formatPrice(priceData, storedAddresses.*, currentGroup)]]</span>
-      </div>
-      <div class="small-text">
-        <span>Last update</span>
-        <br>
-        <span>[[_formatUpdatedTime(updatedAt)]]</span>
-      </div>
-    </div>
+    <address-toolbar
+      btc-format="[[btcFormat]]"
+      current-group="[[currentGroup]]"
+      price-data="[[priceData]]"
+      stored-addresses="[[storedAddresses]]"
+      updated-at="[[updatedAt]]">
+    </address-toolbar>
 
-    <div class="layout horizontal">
+    <div class="content layout horizontal">
       <!-- Always visible navigation for non narrow screens -->
       <dom-if if="[[!isNarrow]]">
         <template>
@@ -228,50 +209,6 @@
             acc[address.address] = address
             return acc
           }, {})
-      }
-
-      _formatUpdatedTime(time) {
-        if (!time) {
-          return '-'
-        }
-        const updatedAt = moment(time)
-        if (updatedAt.isSame(moment(), 'day')) {
-          return updatedAt.format('HH:mm')
-        } else {
-          return updatedAt.format('YYYY-MM-DD HH:mm')
-        }
-      }
-
-      getBalance({addresses}) {
-        return addresses
-          .reduce((amount, address) => {
-            amount += address.data ? address.data.balance : 0
-            return amount
-          }, 0)
-      }
-
-      _formatBalance(btcFormat, addressChange, group) {
-        if (!(btcFormat && addressChange)) {
-          return '- ' + (btcFormat ? btcFormat.name : 'BTC')
-        }
-        const addresses = group
-          ? addressChange.base.filter((address) => address.group === group)
-          : addressChange.base
-        const amount = this.getBalance({addresses})
-        return utils.formatBtc({btcFormat, amount})
-      }
-
-      _formatPrice(priceData, addressChange, group) {
-        if (!(priceData && addressChange)) {
-          return '-'
-        }
-        const addresses = group
-          ? addressChange.base.filter((address) => address.group === group)
-          : addressChange.base
-        const balance = this.getBalance({addresses})
-        const currency = Object.keys(priceData)[0]
-        const amount = balance / 100000000 * priceData[currency]
-        return OSREC.CurrencyFormatter.format(amount, {currency})
       }
 
       _formatCurrentPrice(priceData) {
