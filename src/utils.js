@@ -1,0 +1,1 @@
+var utils={formatBtc:function(a){var b=a.btcFormat,c=a.amount,d=b.divideBy,e=b.decimalCount,f=(c/d).toFixed(e);return f+' '+b.name}};
