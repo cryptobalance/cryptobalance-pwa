@@ -5,50 +5,53 @@
 
 <link rel="import" href="address-item-details-field.html">
 
-<dom-module id="address-item-details" attributes="address">
+<dom-module id="address-item-details">
   <template>
     <style include="shared-styles iron-flex iron-flex-alignment">
+      .actions {
+        margin-bottom: 8px;
+      }
       .details {
-        max-width: 600px;
+        max-width: 450px;
+        margin-bottom: 8px;
       }
     </style>
 
-    <div class="details">
-      <div class="layout horizontal around-justified">
-        <a href$="https://live.blockcypher.com/btc/address/[[address.id]]" target="_blank">
-          <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
-        </a>
-        <paper-icon-button icon="create" class="green" on-click="_editAddress"></paper-icon-button>
-        <paper-icon-button id="deleteButton" icon="delete" class="red" on-click="_openDeleteDialog"></paper-icon-button>
-      </div>
-      <div class="layout horizontal wrap center-justified">
-        <granite-qrcode-generator
-          class="container qr"
-          data="[[address.id]]"
-          mode="octet"
-          margin="0"
-          modulesize="4"
-          auto>
-        </granite-qrcode-generator>
-        <div class="container layout vertical justified flex">
-          <span class="medium-text">[[address.id]]</span>
-          <address-item-details-field
-            label="No. transactions"
-            value="[[_getTransactionCount(address.data)]]">
-          </address-item-details-field>
-          <address-item-details-field
-            label="Received amount"
-            value="[[_getAmountData(address.data, btcFormat, 'total_received')]]">
-          </address-item-details-field>
-          <address-item-details-field
-            label="Sent amount"
-            value="[[_getAmountData(address.data, btcFormat, 'total_sent')]]">
-          </address-item-details-field>
-          <address-item-details-field
-            label="Unconfirmed balance"
-            value="[[_getAmountData(address.data, btcFormat, 'unconfirmed_balance')]]">
-          </address-item-details-field>
+    <div class="container layout horizontal wrap around-justified">
+      <granite-qrcode-generator
+        data="[[address.id]]"
+        mode="octet"
+        margin="2"
+        modulesize="5"
+        auto>
+      </granite-qrcode-generator>
+
+      <div class="details layout vertical justified flex">
+        <div class="actions layout horizontal around-justified">
+          <a href$="https://live.blockcypher.com/btc/address/[[address.id]]" target="_blank">
+            <paper-icon-button icon="open-in-new" class="orange"></paper-icon-button>
+          </a>
+          <paper-icon-button icon="create" class="green" on-click="_editAddress"></paper-icon-button>
+          <paper-icon-button id="deleteButton" icon="delete" class="red" on-click="_openDeleteDialog"></paper-icon-button>
         </div>
+
+        <span class="medium-text">[[address.id]]</span>
+        <address-item-details-field
+          label="No. transactions"
+          value="[[_getTransactionCount(address.data)]]">
+        </address-item-details-field>
+        <address-item-details-field
+          label="Received amount"
+          value="[[_getAmountData(address.data, btcFormat, 'total_received')]]">
+        </address-item-details-field>
+        <address-item-details-field
+          label="Sent amount"
+          value="[[_getAmountData(address.data, btcFormat, 'total_sent')]]">
+        </address-item-details-field>
+        <address-item-details-field
+          label="Unconfirmed balance"
+          value="[[_getAmountData(address.data, btcFormat, 'unconfirmed_balance')]]">
+        </address-item-details-field>
       </div>
     </div>
   </template>
