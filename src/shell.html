@@ -149,7 +149,10 @@
             observer: '_observeAddressGroup',
             notify: true,
           },
-          currentAddressGroup: String,
+          currentAddressGroup: {
+            type: String,
+            observer: '_observeCurrentGroup',
+          },
           isDrawerOpen: {
             type: Boolean,
             value: false,
@@ -179,6 +182,10 @@
 
       _observeAddressGroup(addressGroup) {
         this.currentAddressGroup = addressGroup[0]
+      }
+
+      _observeCurrentGroup(currentGroup) {
+        this.isDrawerOpen = false
       }
 
       _routePageChanged(page) {
