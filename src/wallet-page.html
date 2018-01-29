@@ -18,6 +18,9 @@
 <dom-module id="wallet-page">
   <template>
     <style include="shared-styles iron-flex">
+      :host(:not([is-narrow])) .content {
+        @apply --layout-horizontal;
+      }
       footer {
         position: fixed;
         bottom: 0;
@@ -47,7 +50,7 @@
       updated-at="[[updatedAt]]">
     </address-toolbar>
 
-    <div class="content layout horizontal">
+    <div class="content">
       <!-- Always visible navigation for non narrow screens -->
       <template is="dom-if" if="[[!isNarrow]]">
         <wallet-navigator
@@ -57,7 +60,7 @@
         </wallet-navigator>
       </template>
 
-      <div class="list flex" tabindex="0">
+      <div class="flex" tabindex="0">
         <template
           is="dom-repeat"
           items="{{storedAddresses}}"
@@ -104,7 +107,10 @@
             type: String,
             notify: true,
           },
-          isNarrow: Boolean,
+          isNarrow: {
+            type: Boolean,
+            reflectToAttribute: true,
+          },
           priceData: Object,
           storedAddresses: {
             type: Array,
