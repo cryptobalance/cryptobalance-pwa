@@ -22,7 +22,7 @@
       }
     </style>
 
-    <iron-ajax auto url="/data/currencies.json" last-response="{{currencies}}"></iron-ajax>
+    <iron-ajax auto url="[[basePath]]data/currencies.json" last-response="{{currencies}}"></iron-ajax>
     <preferences-data
       btc-formats="{{btcFormats}}"
       saved-btc-format="{{savedBtcFormat}}"
