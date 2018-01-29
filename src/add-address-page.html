@@ -22,6 +22,12 @@
       paper-button[toggles][active] {
         background: var(--paper-green-600);
       }
+      #toastContainer {
+        position: fixed;
+        bottom: 0;
+        height: 80px;
+        width: 100%;
+      }
       .container {
         max-width: 512px;
         margin: 0px auto;
@@ -69,7 +75,9 @@
       </div>
     </div>
 
-    <app-toasts id="toast" intense></app-toasts>
+    <div id="toastContainer">
+      <app-toasts id="toast" intense></app-toasts>
+    </div>
   </template>
 
   <script>
@@ -136,6 +144,7 @@
       showSuccessToast() {
         const properties = {
           fitBottom: this.isNarrow,
+          horizontalAlign: 'center',
         }
         this.$.toast.showSuccessToast('The address was successfully added!', properties)
       }
