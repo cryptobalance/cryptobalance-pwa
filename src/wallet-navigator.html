@@ -106,7 +106,7 @@
         invalid="{{isEditInputInvalid}}"
         always-float-label>
       </paper-input>
-      <div>
+      <div class="buttons">
         <paper-button raised dialog-dismiss>Cancel</paper-button>
         <paper-button raised on-click="_editName">Save</paper-button>
       </div>
@@ -142,6 +142,10 @@
             value: false,
             reflectToAttribute: true,
           },
+          isDrawerOpen: {
+            type: Boolean,
+            observer: '_observeDrawerOpen',
+          },
           isAddInputInvalid: {
             type: Boolean,
             value: false,
@@ -150,10 +154,18 @@
             type: Boolean,
             value: false,
           },
+          showSettings: Boolean,
           storedAddresses: {
             type: Array,
             notify: true,
           },
+        }
+      }
+
+      _observeDrawerOpen(isOpen) {
+        if (isOpen) {
+          this.isAdding = false
+          this.showSettings = false
         }
       }
 
@@ -222,7 +234,6 @@
         if (result.isValid) {
           const index = this.addressGroups.findIndex((group) => group === this.editDialogGroup)
           this.set(['addressGroups', index], name)
-          this.currentGroup = name
           this.changeAddressGroups({oldGroup: this.editDialogGroup, newGroup: name})
           this.$.editDialog.close()
         } else {

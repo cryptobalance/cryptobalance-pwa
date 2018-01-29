@@ -46,7 +46,7 @@
     <preferences-data btc-format="{{btcFormat}}" currency="{{currency}}"></preferences-data>
 
     <div class="list-item">
-      <paper-item on-click="_toggleDetails">
+      <paper-item on-tap="_toggleDetails">
         <paper-item-body two-line>
           <div id="addressName">[[address.name]]</div>
           <paper-input
@@ -84,7 +84,7 @@
       horizontal-align="[[_horizontalAlign(isNarrow)]]"
       vertical-align="[[_verticalAlign(isNarrow)]]">
       <h2>Delete address?</h2>
-      <div>
+      <div class="buttons">
         <paper-button raised dialog-dismiss>Cancel</paper-button>
         <paper-button raised dialog-confirm on-click="_delete">Confirm</paper-button>
       </div>
