@@ -192,8 +192,17 @@
       }
 
       _deleteGroup(e) {
+        this.deleteAddresses({group: e.detail.group})
         const index = this.addressGroups.findIndex((group) => group === e.detail.group)
         this.splice('addressGroups', index, 1)
+      }
+
+      deleteAddresses({group}) {
+        this.storedAddresses.forEach((address, index) => {
+          if (address.group === group) {
+            this.splice('storedAddresses', index, 1)
+          }
+        })
       }
 
       _openEditDialog(e) {
